@@ -257,6 +257,12 @@ export interface Order {
   amount?: number | null;
   currency?: 'IDR' | null;
   accessToken?: string | null;
+  orderProgress: 'belum_konfirmasi' | 'dikonfirmasi' | 'diproses' | 'pengiriman' | 'selesai' | 'dibatalkan';
+  paymentStatus: 'unpaid' | 'dp_paid' | 'paid' | 'cancelled';
+  customerName: string;
+  customerPhone: string;
+  message?: string | null;
+  adminNotes?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -900,11 +906,6 @@ export interface Transaction {
         id?: string | null;
       }[]
     | null;
-  paymentMethod?: 'stripe' | null;
-  stripe?: {
-    customerID?: string | null;
-    paymentIntentID?: string | null;
-  };
   billingAddress?: {
     title?: string | null;
     firstName?: string | null;
@@ -1691,6 +1692,12 @@ export interface OrdersSelect<T extends boolean = true> {
   amount?: T;
   currency?: T;
   accessToken?: T;
+  orderProgress?: T;
+  paymentStatus?: T;
+  customerName?: T;
+  customerPhone?: T;
+  message?: T;
+  adminNotes?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1706,13 +1713,6 @@ export interface TransactionsSelect<T extends boolean = true> {
         variant?: T;
         quantity?: T;
         id?: T;
-      };
-  paymentMethod?: T;
-  stripe?:
-    | T
-    | {
-        customerID?: T;
-        paymentIntentID?: T;
       };
   billingAddress?:
     | T

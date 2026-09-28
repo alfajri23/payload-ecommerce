@@ -5,8 +5,6 @@ import { GenerateTitle, GenerateURL } from '@payloadcms/plugin-seo/types'
 import { FixedToolbarFeature, HeadingFeature, lexicalEditor } from '@payloadcms/richtext-lexical'
 import { Plugin } from 'payload'
 
-import { stripeAdapter } from '@payloadcms/plugin-ecommerce/payments/stripe'
-
 import { adminOnlyFieldAccess } from '@/access/adminOnlyFieldAccess'
 import { adminOrPublishedStatus } from '@/access/adminOrPublishedStatus'
 import { customerOnlyFieldAccess } from '@/access/customerOnlyFieldAccess'
@@ -112,17 +110,64 @@ export const plugins: Plugin[] = [
               ],
             },
           },
+          {
+            name: 'orderProgress',
+            type: 'select',
+            label: 'Status Pemesanan',
+            defaultValue: 'belum_konfirmasi',
+            required: true,
+            options: [
+              { label: 'Pesanan Belum Dikonfirmasi', value: 'belum_konfirmasi' },
+              { label: 'Pesanan Dikonfirmasi', value: 'dikonfirmasi' },
+              { label: 'Sedang Diproses', value: 'diproses' },
+              { label: 'Dalam Pengiriman / Siap Diambil', value: 'pengiriman' },
+              { label: 'Selesai', value: 'selesai' },
+              { label: 'Dibatalkan', value: 'dibatalkan' },
+            ],
+            admin: { position: 'sidebar' },
+          },
+          {
+            name: 'paymentStatus',
+            type: 'select',
+            label: 'Status Pembayaran',
+            defaultValue: 'unpaid',
+            required: true,
+            options: [
+              { label: 'Belum Bayar', value: 'unpaid' },
+              { label: 'DP Terbayar', value: 'dp_paid' },
+              { label: 'Lunas', value: 'paid' },
+              { label: 'Dibatalkan', value: 'cancelled' },
+            ],
+            admin: { position: 'sidebar' },
+          },
+          {
+            name: 'customerName',
+            type: 'text',
+            label: 'Nama Pemesan',
+            required: true,
+          },
+          {
+            name: 'customerPhone',
+            type: 'text',
+            label: 'No. WhatsApp / Telepon',
+            required: true,
+          },
+          {
+            name: 'message',
+            type: 'textarea',
+            label: 'Catatan Pesanan / Request Khusus',
+          },
+          {
+            name: 'adminNotes',
+            type: 'textarea',
+            label: 'Catatan Internal Admin',
+            admin: { position: 'sidebar' },
+          },
         ],
       }),
     },
     payments: {
-      paymentMethods: [
-        stripeAdapter({
-          secretKey: process.env.STRIPE_SECRET_KEY!,
-          publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
-          webhookSecret: process.env.STRIPE_WEBHOOKS_SIGNING_SECRET!,
-        }),
-      ],
+      paymentMethods: [],
     },
     products: {
       productsCollectionOverride: ProductsCollection,
@@ -134,7 +179,7 @@ export const plugins: Plugin[] = [
           code: 'IDR',
           label: 'Indonesian Rupiah',
           symbol: 'Rp',
-          decimals: 0, // Rupiah umumnya tidak menggunakan desimal/sen
+          decimals: 0,
         },
       ],
     },
