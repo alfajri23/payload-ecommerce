@@ -135,10 +135,9 @@ export function HomePageClient({ categoriesWithProducts = [] }: Props) {
 
             {/* Right Column: Editorial Paragraph with Business Location & Phone */}
             <div className="lg:col-span-3 xl:col-span-3 space-y-6 lg:pl-2">
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-light">
+              <p className="text-xs sm:text-sm text-slate-600 font-light">
                 The bakery is an establishment that produces food baked in an oven such as bread,
-                cookies, cakes, pastries, and pies. Some retail bakeries are also categorized as
-                cafés, serving coffee and tea to customers.
+                cookies, cakes, pastries, and pies.
               </p>
 
               {/* Business Location & Phone */}

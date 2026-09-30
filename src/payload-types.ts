@@ -76,6 +76,7 @@ export interface Config {
     pages: Page;
     categories: Category;
     media: Media;
+    'page-views': PageView;
     forms: Form;
     'form-submissions': FormSubmission;
     addresses: Address;
@@ -109,6 +110,7 @@ export interface Config {
     pages: PagesSelect<false> | PagesSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    'page-views': PageViewsSelect<false> | PageViewsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
     addresses: AddressesSelect<false> | AddressesSelect<true>;
@@ -1000,6 +1002,30 @@ export interface Address {
   createdAt: string;
 }
 /**
+ * Catatan analitik kunjungan website (First-Party).
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "page-views".
+ */
+export interface PageView {
+  id: number;
+  /**
+   * Halaman tempat pengunjung pertama kali mendarat
+   */
+  path: string;
+  /**
+   * Sumber asal (dari ?ref=, ?utm_source=, atau hostname browser)
+   */
+  referrer?: string | null;
+  device: 'mobile' | 'tablet' | 'desktop';
+  /**
+   * ID sesi unik anonim pengunjung
+   */
+  sessionId: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "form-submissions".
  */
@@ -1055,6 +1081,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'page-views';
+        value: number | PageView;
       } | null)
     | ({
         relationTo: 'forms';
@@ -1367,6 +1397,18 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "page-views_select".
+ */
+export interface PageViewsSelect<T extends boolean = true> {
+  path?: T;
+  referrer?: T;
+  device?: T;
+  sessionId?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
