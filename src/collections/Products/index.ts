@@ -10,13 +10,6 @@ import {
   OverviewField,
   PreviewField,
 } from '@payloadcms/plugin-seo/fields'
-import {
-  FixedToolbarFeature,
-  HeadingFeature,
-  HorizontalRuleFeature,
-  InlineToolbarFeature,
-  lexicalEditor,
-} from '@payloadcms/richtext-lexical'
 import { DefaultDocumentIDType, slugField, Where } from 'payload'
 
 export const ProductsCollection: CollectionOverride = ({ defaultCollection }) => ({
@@ -40,6 +33,27 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
       }),
     useAsTitle: 'title',
   },
+  hooks: {
+    ...defaultCollection?.hooks,
+    beforeChange: [
+      ...(defaultCollection?.hooks?.beforeChange || []),
+      ({ data }) => {
+        if (data && data.priceInIDREnabled === false) {
+          data.priceInIDR = null
+        }
+        return data
+      },
+    ],
+    afterRead: [
+      ...(defaultCollection?.hooks?.afterRead || []),
+      ({ doc }) => {
+        if (doc && doc.priceInIDREnabled === false) {
+          doc.priceInIDR = null
+        }
+        return doc
+      },
+    ],
+  },
   defaultPopulate: {
     ...defaultCollection?.defaultPopulate,
     title: true,
@@ -61,18 +75,7 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
           fields: [
             {
               name: 'description',
-              type: 'richText',
-              editor: lexicalEditor({
-                features: ({ rootFeatures }) => {
-                  return [
-                    ...rootFeatures,
-                    HeadingFeature({ enabledHeadingSizes: ['h1', 'h2', 'h3', 'h4'] }),
-                    FixedToolbarFeature(),
-                    InlineToolbarFeature(),
-                    HorizontalRuleFeature(),
-                  ]
-                },
-              }),
+              type: 'textarea',
               label: false,
               required: false,
             },
