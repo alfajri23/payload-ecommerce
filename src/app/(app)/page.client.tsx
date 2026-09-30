@@ -8,13 +8,11 @@ import {
   Coffee,
   Gift,
   MapPin,
-  Menu,
   Phone,
-  Search,
   ShoppingBag,
   Truck,
   Wheat,
-  X,
+  X
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -173,43 +171,10 @@ export function HomePageClient() {
         </div>
       )}
 
-      {/* MINIMALIST NAV BAR */}
-      <header className="border-b border-slate-100 bg-white">
-        <div className="container mx-auto px-4 sm:px-8 lg:px-12 py-5 flex items-center justify-between">
-          <Link href="/" className="font-bold text-xl sm:text-2xl tracking-tight text-slate-900">
-            TheBakery
-          </Link>
-
-          <nav
-            aria-label="Navigasi Menu Utama"
-            className="hidden md:flex items-center gap-8 text-xs font-normal text-slate-500 lowercase tracking-wide"
-          >
-            <a href="#promo" className="hover:text-slate-900 transition-colors">promo</a>
-            <a href="#top-product" className="hover:text-slate-900 transition-colors">signature</a>
-            <a href="#katalog" className="hover:text-slate-900 transition-colors">menu</a>
-            <a href="#filosofi" className="hover:text-slate-900 transition-colors">philosophy</a>
-          </nav>
-
-          <div className="flex items-center gap-5 text-slate-700">
-            <Link href="/shop" aria-label="Cari produk" className="hover:text-slate-900 transition-colors">
-              <Search className="h-4 w-4" />
-            </Link>
-            <Link href="/shop" aria-label="Menu katalog" className="hover:text-slate-900 transition-colors">
-              <Menu className="h-4 w-4" />
-            </Link>
-            {cartCount > 0 && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-[#bc6432] px-2.5 py-0.5 text-2xs font-bold text-white">
-                <ShoppingBag className="h-2.5 w-2.5" /> {cartCount}
-              </span>
-            )}
-          </div>
-        </div>
-      </header>
-
       {/* 1. HERO SECTION: Kept as approved with large prominent center image & left Order Now */}
       <section
         aria-label="The Bakery Hero"
-        className="relative bg-white pt-6 pb-6 sm:pt-10 sm:pb-8"
+        className="relative bg-white pb-6 sm:pb-8"
       >
         <div className="container mx-auto px-4 sm:px-8 lg:px-12 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center min-h-[520px]">
@@ -623,30 +588,6 @@ export function HomePageClient() {
         </div>
       </section>
 
-      {/* MINIMALIST FOOTER */}
-      <footer className="border-t border-slate-100 bg-[#faf8f5] py-12 text-slate-600">
-        <div className="container mx-auto px-4 sm:px-8 lg:px-12 flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="space-y-1 text-center sm:text-left">
-            <Link href="/" className="font-bold text-lg tracking-tight text-slate-900">
-              TheBakery
-            </Link>
-            <p className="text-2xs text-slate-500">
-              Artisan Sourdough & French Pastry. Jl. Senopati No. 42, Jakarta Selatan.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-6 text-xs text-slate-500">
-            <a href="#promo" className="hover:text-slate-900 transition-colors">Promo</a>
-            <a href="#top-product" className="hover:text-slate-900 transition-colors">Signature</a>
-            <a href="#katalog" className="hover:text-slate-900 transition-colors">Menu</a>
-            <a href="#filosofi" className="hover:text-slate-900 transition-colors">Filosofi</a>
-          </div>
-
-          <p className="text-2xs text-slate-400">
-            © 2026 TheBakery. All rights reserved.
-          </p>
-        </div>
-      </footer>
     </div>
   )
 }
