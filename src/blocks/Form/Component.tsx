@@ -136,11 +136,13 @@ export const FormBlock: React.FC<
   }
 
   return (
-    <div className="container lg:max-w-3xl">
+    <div className="container mx-auto px-4 sm:px-8 lg:max-w-3xl my-12 sm:my-16 md:my-20">
       {enableIntro && introContent && !hasSubmitted && (
-        <RichText className="mb-8 lg:mb-12" data={introContent} enableGutter={false} />
+        <div className="mb-8 lg:mb-12 prose prose-slate max-w-none prose-headings:font-serif prose-headings:text-slate-900 prose-headings:tracking-tight prose-p:text-slate-600">
+          <RichText data={introContent} enableGutter={false} />
+        </div>
       )}
-      <div className="p-6 sm:p-8 border border-slate-200 bg-white">
+      <div className="p-6 sm:p-10 border border-slate-200/90 bg-white shadow-2xs">
         <FormProvider {...formMethods}>
           {!isLoading && hasSubmitted && confirmationType === 'message' && (
             <div className="prose prose-slate max-w-none">

@@ -35,24 +35,26 @@ export const MediaBlock: React.FC<
   return (
     <div
       className={cn(
-        '',
+        'my-8 sm:my-12 md:my-16',
         {
-          container: enableGutter,
+          'container mx-auto px-4 sm:px-8 lg:px-12': enableGutter,
         },
         className,
       )}
     >
-      <Media
-        imgClassName={cn('border border-border rounded-[0.8rem]', imgClassName)}
-        resource={media}
-        src={staticImage}
-      />
+      <div className="relative overflow-hidden border border-slate-200/90 bg-[#faf7f2]">
+        <Media
+          imgClassName={cn('w-full h-auto object-cover rounded-none', imgClassName)}
+          resource={media}
+          src={staticImage}
+        />
+      </div>
       {caption && (
         <div
           className={cn(
-            'mt-6',
+            'mt-3 text-xs sm:text-sm text-slate-500 italic',
             {
-              container: !disableInnerContainer,
+              'container mx-auto px-4 sm:px-8': !disableInnerContainer && !enableGutter,
             },
             captionClassName,
           )}

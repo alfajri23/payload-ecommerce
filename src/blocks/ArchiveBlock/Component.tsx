@@ -7,13 +7,15 @@ import { RichText } from '@/components/RichText'
 
 import { CollectionArchive } from '@/components/CollectionArchive'
 
+import { cn } from '@/utilities/cn'
+
 export const ArchiveBlock: React.FC<
   ArchiveBlockProps & {
     id?: DefaultDocumentIDType
     className?: string
   }
 > = async (props) => {
-  const { id, categories, introContent, limit: limitFromProps, populateBy, selectedDocs } = props
+  const { id, categories, introContent, limit: limitFromProps, populateBy, selectedDocs, className } = props
 
   const limit = limitFromProps || 3
 
@@ -54,9 +56,9 @@ export const ArchiveBlock: React.FC<
   }
 
   return (
-    <div className="my-16" id={`block-${id}`}>
+    <div className={cn('container mx-auto px-4 sm:px-8 lg:px-12 my-12 sm:my-16 md:my-20', className)} id={`block-${id}`}>
       {introContent && (
-        <div className="container mb-16">
+        <div className="mb-8 sm:mb-12 max-w-3xl prose prose-slate prose-headings:font-serif prose-headings:text-slate-900 prose-headings:tracking-tight prose-p:text-slate-600">
           <RichText className="ml-0 max-w-3xl" data={introContent} enableGutter={false} />
         </div>
       )}
