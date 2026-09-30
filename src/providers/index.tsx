@@ -1,11 +1,36 @@
+'use client'
+
 import { AuthProvider } from '@/providers/Auth'
-import { EcommerceProvider } from '@payloadcms/plugin-ecommerce/client/react'
-import { stripeAdapterClient } from '@payloadcms/plugin-ecommerce/payments/stripe'
-import React from 'react'
+import { EcommerceProvider, useCart } from '@payloadcms/plugin-ecommerce/client/react'
+import React, { useEffect } from 'react'
 
 import { HeaderThemeProvider } from './HeaderTheme'
 import { ThemeProvider } from './Theme'
 import { SonnerProvider } from '@/providers/Sonner'
+
+const currenciesConfig = {
+  defaultCurrency: 'IDR',
+  supportedCurrencies: [
+    {
+      code: 'IDR',
+      decimals: 0,
+      label: 'Indonesian Rupiah',
+      symbol: 'Rp',
+    },
+  ],
+}
+
+function CartSanitizer() {
+  const { cart, clearCart } = useCart()
+
+  useEffect(() => {
+    if (cart && cart.currency && cart.currency !== 'IDR') {
+      void clearCart()
+    }
+  }, [cart, clearCart])
+
+  return null
+}
 
 export const Providers: React.FC<{
   children: React.ReactNode
@@ -17,6 +42,9 @@ export const Providers: React.FC<{
           <SonnerProvider />
           <EcommerceProvider
             enableVariants={true}
+            currenciesConfig={currenciesConfig}
+            debug={process.env.NODE_ENV !== 'production'}
+            paymentMethods={[]}
             api={{
               cartsFetchQuery: {
                 depth: 2,
@@ -26,20 +54,21 @@ export const Providers: React.FC<{
                     title: true,
                     gallery: true,
                     inventory: true,
+                    priceInIDR: true,
+                    priceInIDREnabled: true,
                   },
                   variants: {
                     title: true,
                     inventory: true,
+                    priceInIDR: true,
+                    priceInIDREnabled: true,
+                    options: true,
                   },
                 },
               },
             }}
-            paymentMethods={[
-              stripeAdapterClient({
-                publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '',
-              }),
-            ]}
           >
+            <CartSanitizer />
             {children}
           </EcommerceProvider>
         </HeaderThemeProvider>
