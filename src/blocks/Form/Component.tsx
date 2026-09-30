@@ -136,13 +136,13 @@ export const FormBlock: React.FC<
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-8 lg:max-w-3xl my-12 sm:my-16 md:my-20">
+    <div className="container mx-auto px-4 sm:px-8 lg:max-w-3xl my-10 sm:my-14 lg:my-16">
       {enableIntro && introContent && !hasSubmitted && (
-        <div className="mb-8 lg:mb-12 prose prose-slate max-w-none prose-headings:font-serif prose-headings:text-slate-900 prose-headings:tracking-tight prose-p:text-slate-600">
+        <div className="mb-8 lg:mb-10 prose prose-slate max-w-none prose-headings:font-sans prose-headings:font-bold prose-headings:text-slate-900 prose-headings:tracking-tight prose-p:text-slate-600">
           <RichText data={introContent} enableGutter={false} />
         </div>
       )}
-      <div className="p-6 sm:p-10 border border-slate-200/90 bg-white shadow-2xs">
+      <div className="p-6 sm:p-10 border border-slate-300 rounded-xl bg-white shadow-sm">
         <FormProvider {...formMethods}>
           {!isLoading && hasSubmitted && confirmationType === 'message' && (
             <div className="prose prose-slate max-w-none">
@@ -155,7 +155,7 @@ export const FormBlock: React.FC<
             </div>
           )}
           {error && (
-            <div className="p-4 mb-6 text-sm text-red-700 bg-red-50 border border-red-200">
+            <div className="p-4 mb-6 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg">
               <p className="font-semibold">{error.status ? `Error ${error.status}` : 'Terjadi Kesalahan'}</p>
               <p className="mt-1">{error.message || 'Gagal mengirim formulir. Silakan coba lagi.'}</p>
             </div>
@@ -189,7 +189,7 @@ export const FormBlock: React.FC<
                 form={String(formID)}
                 type="submit"
                 disabled={isLoading}
-                className="bg-slate-900 hover:bg-slate-800 text-white rounded-none px-6 py-2.5 font-medium transition-colors cursor-pointer"
+                className="bg-amber-800 hover:bg-amber-900 text-white rounded-lg px-6 py-2.5 font-medium transition-all shadow-xs hover:shadow-sm active:scale-98 cursor-pointer"
               >
                 {isLoading ? 'Mengirim...' : submitButtonLabel || 'Kirim'}
               </Button>
