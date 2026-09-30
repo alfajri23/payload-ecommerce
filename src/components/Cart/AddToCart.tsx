@@ -38,15 +38,19 @@ export function AddToCart({ product }: Props) {
   }, [product.enableVariants, searchParams, variants])
 
   const addToCart = useCallback(
-    (e: React.FormEvent<HTMLButtonElement>) => {
+    async (e: React.FormEvent<HTMLButtonElement>) => {
       e.preventDefault()
 
-      addItem({
-        product: product.id,
-        variant: selectedVariant?.id ?? undefined,
-      }).then(() => {
-        toast.success('Item added to cart.')
-      })
+      try {
+        await addItem({
+          product: product.id,
+          variant: selectedVariant?.id ?? undefined,
+        })
+        toast.success('Produk berhasil ditambahkan ke keranjang.')
+      } catch (err) {
+        console.error('Add to cart error:', err)
+        toast.error('Gagal menambahkan produk ke keranjang.')
+      }
     },
     [addItem, product, selectedVariant],
   )

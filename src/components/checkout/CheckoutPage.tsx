@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { useAuth } from '@/providers/Auth'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { LoadingSpinner } from '@/components/LoadingSpinner'
 import { useCart } from '@payloadcms/plugin-ecommerce/client/react'
@@ -35,6 +35,35 @@ export const CheckoutPage: React.FC = () => {
   }, [user])
 
   const cartIsEmpty = !cart || !cart.items || !cart.items.length
+
+  const totalAmount = useMemo(() => {
+    if (typeof cart?.subtotal === 'number' && cart.subtotal > 0) {
+      return cart.subtotal
+    }
+    if (!cart?.items || !cart.items.length) return 0
+    return cart.items.reduce((sum, item) => {
+      const isVariantPriceEnabled =
+        typeof item.variant === 'object'
+          ? (item.variant as any)?.priceInIDREnabled !== false
+          : true
+      const isProductPriceEnabled =
+        typeof item.product === 'object'
+          ? (item.product as any)?.priceInIDREnabled !== false
+          : true
+
+      const variantPrice =
+        typeof item.variant === 'object' && isVariantPriceEnabled
+          ? (item.variant as any)?.priceInIDR
+          : undefined
+      const productPrice =
+        typeof item.product === 'object' && isProductPriceEnabled
+          ? (item.product as any)?.priceInIDR
+          : undefined
+      const price =
+        variantPrice && variantPrice > 0 ? variantPrice : productPrice || 0
+      return sum + price * (item.quantity || 1)
+    }, 0)
+  }, [cart])
 
   const canSubmit = Boolean(customerName.trim() && customerPhone.trim())
 
@@ -285,7 +314,11 @@ export const CheckoutPage: React.FC = () => {
                 const isVariant = Boolean(variant) && typeof variant === 'object'
 
                 if (isVariant && typeof variant === 'object') {
-                  price = variant?.priceInIDR
+                  const isVariantPriceEnabled = (variant as any)?.priceInIDREnabled !== false
+                  const variantPrice = isVariantPriceEnabled ? variant?.priceInIDR : undefined
+                  if (typeof variantPrice === 'number' && variantPrice > 0) {
+                    price = variantPrice
+                  }
 
                   const imageVariant = product.gallery?.find((galleryItem: any) => {
                     if (!galleryItem.variantOption) return false
@@ -344,7 +377,7 @@ export const CheckoutPage: React.FC = () => {
 
           <div className="border-t border-[#e0d6ca] pt-4 flex justify-between items-center">
             <span className="text-sm text-[#6b5e54] font-medium">Total</span>
-            <Price className="text-xl font-semibold text-[#2c1810]" amount={cart.subtotal || 0} />
+            <Price className="text-xl font-semibold text-[#2c1810]" amount={totalAmount} />
           </div>
         </div>
       </div>

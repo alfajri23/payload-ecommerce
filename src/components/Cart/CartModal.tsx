@@ -38,6 +38,35 @@ export function CartModal() {
     return cart.items.reduce((quantity, item) => (item.quantity || 0) + quantity, 0)
   }, [cart])
 
+  const displaySubtotal = useMemo(() => {
+    if (typeof cart?.subtotal === 'number' && cart.subtotal > 0) {
+      return cart.subtotal
+    }
+    if (!cart?.items || !cart.items.length) return 0
+    return cart.items.reduce((sum, item) => {
+      const isVariantPriceEnabled =
+        typeof item.variant === 'object'
+          ? (item.variant as any)?.priceInIDREnabled !== false
+          : true
+      const isProductPriceEnabled =
+        typeof item.product === 'object'
+          ? (item.product as any)?.priceInIDREnabled !== false
+          : true
+
+      const variantPrice =
+        typeof item.variant === 'object' && isVariantPriceEnabled
+          ? (item.variant as any)?.priceInIDR
+          : undefined
+      const productPrice =
+        typeof item.product === 'object' && isProductPriceEnabled
+          ? (item.product as any)?.priceInIDR
+          : undefined
+      const price =
+        variantPrice && variantPrice > 0 ? variantPrice : productPrice || 0
+      return sum + price * (item.quantity || 1)
+    }, 0)
+  }, [cart])
+
   return (
     <Sheet onOpenChange={setIsOpen} open={isOpen}>
       <SheetTrigger asChild>
@@ -83,7 +112,11 @@ export function CartModal() {
                   const isVariant = Boolean(variant) && typeof variant === 'object'
 
                   if (isVariant) {
-                    price = variant?.priceInIDR
+                    const isVariantPriceEnabled = (variant as any)?.priceInIDREnabled !== false
+                    const variantPrice = isVariantPriceEnabled ? variant?.priceInIDR : undefined
+                    if (typeof variantPrice === 'number' && variantPrice > 0) {
+                      price = variantPrice
+                    }
 
                     const imageVariant = product.gallery?.find((galleryItem: any) => {
                       if (!galleryItem.variantOption) return false
@@ -164,15 +197,13 @@ export function CartModal() {
 
               <div className="px-4">
                 <div className="py-4 text-sm text-neutral-500 dark:text-neutral-400">
-                  {typeof cart?.subtotal === 'number' && (
-                    <div className="mb-3 flex items-center justify-between border-b border-neutral-200 pb-1 pt-1 dark:border-neutral-700">
-                      <p>Total</p>
-                      <Price
-                        amount={cart?.subtotal}
-                        className="text-right text-base text-black dark:text-white"
-                      />
-                    </div>
-                  )}
+                  <div className="mb-3 flex items-center justify-between border-b border-neutral-200 pb-1 pt-1 dark:border-neutral-700">
+                    <p>Total</p>
+                    <Price
+                      amount={displaySubtotal}
+                      className="text-right text-base text-black dark:text-white"
+                    />
+                  </div>
 
                   <Button asChild>
                     <Link className="w-full" href="/checkout">
