@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 
 import { RenderParams } from '@/components/RenderParams'
-import Link from 'next/link'
 import React from 'react'
 
 import { headers as getHeaders } from 'next/headers'
@@ -20,16 +19,25 @@ export default async function Login() {
   }
 
   return (
-    <div className="container">
-      <div className="max-w-xl mx-auto my-12">
+    <div className="min-h-[calc(100vh-220px)] py-10 sm:py-16 lg:py-20 flex flex-col justify-center items-center px-4 sm:px-6">
+      <div className="w-full max-w-md sm:max-w-lg">
         <RenderParams />
 
-        <h1 className="mb-4 text-[1.8rem]">Log in</h1>
-        <p className="mb-8">
-          {`This is where your customers will login to manage their account, review their order history, and more. To manage all users, `}
-          <Link href="/admin/collections/users">login to the admin dashboard</Link>.
-        </p>
-        <LoginForm />
+        <div className="bg-white border border-slate-300 rounded-2xl p-6 sm:p-10 shadow-sm">
+          <div className="mb-8 text-center sm:text-left">
+            <span className="text-xs uppercase tracking-[0.25em] text-[#bc6432] font-semibold block mb-1.5">
+              The Bakery
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+              Sign In
+            </h1>
+            <p className="mt-2 text-sm text-slate-600">
+              Masuk ke akun Anda untuk melacak pesanan dan menikmati kemudahan berbelanja roti hangat.
+            </p>
+          </div>
+
+          <LoginForm />
+        </div>
       </div>
     </div>
   )

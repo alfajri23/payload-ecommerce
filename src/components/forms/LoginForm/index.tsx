@@ -50,46 +50,65 @@ export const LoginForm: React.FC = () => {
   )
 
   return (
-    <form className="" onSubmit={handleSubmit(onSubmit)}>
-      <Message className="classes.message" error={error} />
-      <div className="flex flex-col gap-8">
+    <form className="w-full" onSubmit={handleSubmit(onSubmit)}>
+      {error && <Message error={error} className="mb-6" />}
+
+      <div className="flex flex-col gap-5">
         <FormItem>
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email" className="text-sm font-semibold text-slate-800">
+            Email
+          </Label>
           <Input
             id="email"
             type="email"
-            {...register('email', { required: 'Email is required.' })}
+            placeholder="nama@email.com"
+            className="h-11 rounded-lg border-slate-300 focus-visible:border-amber-800 focus-visible:ring-amber-800/20 text-slate-900"
+            {...register('email', { required: 'Email wajib diisi.' })}
           />
           {errors.email && <FormError message={errors.email.message} />}
         </FormItem>
 
         <FormItem>
-          <Label htmlFor="password">Password</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password" className="text-sm font-semibold text-slate-800">
+              Password
+            </Label>
+            <Link
+              href={`/forgot-password${allParams}`}
+              className="text-xs font-medium text-slate-500 hover:text-[#bc6432] transition-colors"
+            >
+              Lupa password?
+            </Link>
+          </div>
           <Input
             id="password"
             type="password"
-            {...register('password', { required: 'Please provide a password.' })}
+            placeholder="••••••••"
+            className="h-11 rounded-lg border-slate-300 focus-visible:border-amber-800 focus-visible:ring-amber-800/20 text-slate-900"
+            {...register('password', { required: 'Password wajib diisi.' })}
           />
           {errors.password && <FormError message={errors.password.message} />}
         </FormItem>
 
-        <div className="text-primary/70 mb-6 prose prose-a:hover:text-primary dark:prose-invert">
-          <p>
-            Forgot your password?{' '}
-            <Link href={`/forgot-password${allParams}`}>Click here to reset it</Link>
-          </p>
+        <div className="pt-2">
+          <Button
+            className="w-full h-11 bg-[#bc6432] hover:bg-[#a35224] text-white font-medium rounded-lg text-sm transition-all shadow-xs hover:shadow-sm active:scale-98 cursor-pointer flex items-center justify-center"
+            disabled={isLoading}
+            type="submit"
+          >
+            {isLoading ? 'Memproses...' : 'Masuk'}
+          </Button>
         </div>
       </div>
 
-      <div className="flex gap-4 justify-between">
-        <Button asChild variant="outline" size="lg">
-          <Link href={`/create-account${allParams}`} className="grow max-w-[50%]">
-            Create an account
-          </Link>
-        </Button>
-        <Button className="grow" disabled={isLoading} size="lg" type="submit" variant="default">
-          {isLoading ? 'Processing' : 'Continue'}
-        </Button>
+      <div className="mt-8 pt-6 border-t border-slate-100 text-center text-sm text-slate-600">
+        Belum memiliki akun?{' '}
+        <Link
+          href={`/create-account${allParams}`}
+          className="font-semibold text-[#bc6432] hover:text-[#a35224] hover:underline transition-colors"
+        >
+          Daftar sekarang
+        </Link>
       </div>
     </form>
   )
