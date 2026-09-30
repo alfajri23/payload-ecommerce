@@ -358,14 +358,9 @@ export const seed = async ({
     data: {
       currency: 'IDR',
       customer: customer.id,
-      paymentMethod: 'stripe',
-      stripe: {
-        customerID: 'cus_123',
-        paymentIntentID: 'pi_123',
-      },
       status: 'pending',
       billingAddress: baseAddressUSData,
-    },
+    } as any,
   })
 
   const succeededTransaction = await payload.create({
@@ -373,14 +368,9 @@ export const seed = async ({
     data: {
       currency: 'IDR',
       customer: customer.id,
-      paymentMethod: 'stripe',
-      stripe: {
-        customerID: 'cus_123',
-        paymentIntentID: 'pi_123',
-      },
       status: 'succeeded',
       billingAddress: baseAddressUSData,
-    },
+    } as any,
   })
 
   let succeededTransactionID: number | string = succeededTransaction.id
@@ -476,7 +466,7 @@ export const seed = async ({
       ],
       status: 'completed',
       transactions: [succeededTransaction.id],
-    },
+    } as any,
   })
 
   const orderInProcessing = await payload.create({
@@ -500,7 +490,7 @@ export const seed = async ({
       ],
       status: 'processing',
       transactions: [succeededTransaction.id],
-    },
+    } as any,
   })
 
   payload.logger.info(`— Seeding globals...`)

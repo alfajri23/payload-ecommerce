@@ -88,6 +88,18 @@ export const plugins: Plugin[] = [
     orders: {
       ordersCollectionOverride: ({ defaultCollection }) => ({
         ...defaultCollection,
+        admin: {
+          ...defaultCollection.admin,
+          defaultColumns: [
+            'id',
+            'customerName',
+            'customerPhone',
+            'orderProgress',
+            'paymentStatus',
+            'amount',
+            'createdAt',
+          ],
+        },
         fields: [
           ...defaultCollection.fields,
           {
@@ -124,7 +136,12 @@ export const plugins: Plugin[] = [
               { label: 'Selesai', value: 'selesai' },
               { label: 'Dibatalkan', value: 'dibatalkan' },
             ],
-            admin: { position: 'sidebar' },
+            admin: {
+              position: 'sidebar',
+              components: {
+                Cell: '@/components/admin/OrderBadges#OrderProgressCell',
+              },
+            },
           },
           {
             name: 'paymentStatus',
@@ -138,7 +155,12 @@ export const plugins: Plugin[] = [
               { label: 'Lunas', value: 'paid' },
               { label: 'Dibatalkan', value: 'cancelled' },
             ],
-            admin: { position: 'sidebar' },
+            admin: {
+              position: 'sidebar',
+              components: {
+                Cell: '@/components/admin/OrderBadges#PaymentStatusCell',
+              },
+            },
           },
           {
             name: 'customerName',
@@ -166,11 +188,148 @@ export const plugins: Plugin[] = [
         ],
       }),
     },
+    carts: {
+      cartsCollectionOverride: ({ defaultCollection }) => ({
+        ...defaultCollection,
+        hooks: {
+          ...defaultCollection.hooks,
+          beforeChange: [
+            async ({ data, originalDoc, req }) => {
+              const currency = data?.currency || originalDoc?.currency || 'IDR'
+              if (data && !data.currency) {
+                data.currency = currency
+              }
+
+              if (data?.items && Array.isArray(data.items)) {
+                const priceField = `priceIn${currency}`
+                let subtotal = 0
+                for (const item of data.items) {
+                  const quantity = item.quantity || 1
+                  if (item.variant) {
+                    const variantId = typeof item.variant === 'object' ? item.variant.id : item.variant
+                    try {
+                      const variant = await req.payload.findByID({
+                        id: variantId,
+                        collection: 'variants',
+                        depth: 0,
+                        select: { [priceField]: true, [`${priceField}Enabled`]: true, product: true },
+                      })
+                      const isPriceEnabled = (variant as any)?.[`${priceField}Enabled`] !== false
+                      let price = isPriceEnabled ? (variant as any)?.[priceField] : undefined
+                      if (price === undefined || price === null || price === 0) {
+                        const productId =
+                          typeof item.product === 'object'
+                            ? item.product.id
+                            : item.product || (variant as any)?.product
+                        if (productId) {
+                          const product = await req.payload.findByID({
+                            id: productId,
+                            collection: 'products',
+                            depth: 0,
+                            select: { [priceField]: true, [`${priceField}Enabled`]: true },
+                          })
+                          const isProductPriceEnabled =
+                            (product as any)?.[`${priceField}Enabled`] !== false
+                          price = isProductPriceEnabled ? (product as any)?.[priceField] || 0 : 0
+                        }
+                      }
+                      subtotal += (price || 0) * quantity
+                    } catch {
+                      // ignore lookup error
+                    }
+                  } else if (item.product) {
+                    const productId = typeof item.product === 'object' ? item.product.id : item.product
+                    try {
+                      const product = await req.payload.findByID({
+                        id: productId,
+                        collection: 'products',
+                        depth: 0,
+                        select: { [priceField]: true, [`${priceField}Enabled`]: true },
+                      })
+                      const isProductPriceEnabled =
+                        (product as any)?.[`${priceField}Enabled`] !== false
+                      const price = isProductPriceEnabled ? (product as any)?.[priceField] || 0 : 0
+                      subtotal += price * quantity
+                    } catch {
+                      // ignore lookup error
+                    }
+                  }
+                }
+                data.subtotal = subtotal
+              }
+            },
+            ...(defaultCollection.hooks?.beforeChange || []),
+          ],
+          afterRead: [
+            ...(defaultCollection.hooks?.afterRead || []),
+            ({ doc }) => {
+              if (doc && (!doc.subtotal || doc.subtotal === 0) && doc.items?.length > 0) {
+                const currency = doc.currency || 'IDR'
+                const priceField = `priceIn${currency}`
+                let subtotal = 0
+                for (const item of doc.items) {
+                  const isVariantPriceEnabled =
+                    typeof item.variant === 'object'
+                      ? (item.variant as any)?.[`${priceField}Enabled`] !== false
+                      : true
+                  const isProductPriceEnabled =
+                    typeof item.product === 'object'
+                      ? (item.product as any)?.[`${priceField}Enabled`] !== false
+                      : true
+
+                  const variantPrice =
+                    typeof item.variant === 'object' && isVariantPriceEnabled
+                      ? (item.variant as any)?.[priceField]
+                      : undefined
+                  const productPrice =
+                    typeof item.product === 'object' && isProductPriceEnabled
+                      ? (item.product as any)?.[priceField]
+                      : undefined
+                  const price =
+                    variantPrice && variantPrice > 0 ? variantPrice : productPrice || 0
+                  subtotal += price * (item.quantity || 1)
+                }
+                if (subtotal > 0) {
+                  doc.subtotal = subtotal
+                }
+              }
+              return doc
+            },
+          ],
+        },
+      }),
+    },
     payments: {
       paymentMethods: [],
     },
     products: {
       productsCollectionOverride: ProductsCollection,
+      variants: {
+        variantsCollectionOverride: ({ defaultCollection }: { defaultCollection: any }) => ({
+          ...defaultCollection,
+          hooks: {
+            ...defaultCollection.hooks,
+            beforeChange: [
+              ...(defaultCollection.hooks?.beforeChange || []),
+              ({ data }: { data: any }) => {
+                if (data && data.priceInIDREnabled === false) {
+                  data.priceInIDR = null
+                }
+                return data
+              },
+            ],
+            afterRead: [
+              ...(defaultCollection.hooks?.afterRead || []),
+              ({ doc }: { doc: any }) => {
+                if (doc && doc.priceInIDREnabled === false) {
+                  doc.priceInIDR = null
+                }
+                return doc
+              },
+            ],
+          },
+        }),
+      },
     },
     currencies: {
       defaultCurrency: 'IDR',
