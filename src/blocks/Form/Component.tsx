@@ -39,12 +39,18 @@ export const FormBlock: React.FC<
   const {
     enableIntro,
     form: formFromProps,
-    form: { id: formID, confirmationMessage, confirmationType, redirect, submitButtonLabel } = {},
     introContent,
   } = props
 
+  const isFormObject = typeof formFromProps === 'object' && formFromProps !== null
+  const formID = isFormObject ? formFromProps.id : formFromProps
+  const confirmationMessage = isFormObject ? formFromProps.confirmationMessage : undefined
+  const confirmationType = isFormObject ? formFromProps.confirmationType : undefined
+  const redirect = isFormObject ? formFromProps.redirect : undefined
+  const submitButtonLabel = isFormObject ? formFromProps.submitButtonLabel : undefined
+
   const formMethods = useForm({
-    defaultValues: buildInitialFormState(formFromProps.fields),
+    defaultValues: buildInitialFormState(isFormObject && formFromProps.fields ? formFromProps.fields : []),
   })
   const {
     control,
@@ -66,7 +72,7 @@ export const FormBlock: React.FC<
 
         const dataToSend = Object.entries(data).map(([name, value]) => ({
           field: name,
-          value,
+          value: typeof value === 'string' ? value : String(value ?? ''),
         }))
 
         // delay loading indicator by 1s
@@ -115,7 +121,7 @@ export const FormBlock: React.FC<
           console.warn(err)
           setIsLoading(false)
           setError({
-            message: 'Something went wrong.',
+            message: 'Terjadi kesalahan pada sistem formulir.',
           })
         }
       }
@@ -125,47 +131,65 @@ export const FormBlock: React.FC<
     [router, formID, redirect, confirmationType],
   )
 
+  if (!isFormObject || !formFromProps?.fields) {
+    return null
+  }
+
   return (
     <div className="container lg:max-w-3xl">
       {enableIntro && introContent && !hasSubmitted && (
         <RichText className="mb-8 lg:mb-12" data={introContent} enableGutter={false} />
       )}
-      <div className="p-4 lg:p-6 border border-border rounded-[0.8rem]">
+      <div className="p-6 sm:p-8 border border-slate-200 bg-white">
         <FormProvider {...formMethods}>
           {!isLoading && hasSubmitted && confirmationType === 'message' && (
-            <RichText data={confirmationMessage} />
+            <div className="prose prose-slate max-w-none">
+              <RichText data={confirmationMessage} />
+            </div>
           )}
-          {isLoading && !hasSubmitted && <p>Loading, please wait...</p>}
-          {error && <div>{`${error.status || '500'}: ${error.message || ''}`}</div>}
+          {isLoading && !hasSubmitted && (
+            <div className="py-4 text-sm text-slate-500 animate-pulse">
+              Mengirim formulir, mohon tunggu...
+            </div>
+          )}
+          {error && (
+            <div className="p-4 mb-6 text-sm text-red-700 bg-red-50 border border-red-200">
+              <p className="font-semibold">{error.status ? `Error ${error.status}` : 'Terjadi Kesalahan'}</p>
+              <p className="mt-1">{error.message || 'Gagal mengirim formulir. Silakan coba lagi.'}</p>
+            </div>
+          )}
           {!hasSubmitted && (
-            <form id={formID} onSubmit={handleSubmit(onSubmit)}>
-              <div className="mb-4 last:mb-0">
-                {formFromProps &&
-                  formFromProps.fields &&
-                  formFromProps.fields?.map((field, index) => {
-                    const Field: React.FC<any> | undefined =
-                      fields?.[field.blockType as keyof typeof fields]
+            <form id={String(formID)} onSubmit={handleSubmit(onSubmit)}>
+              <div className="mb-6 last:mb-0 space-y-4">
+                {formFromProps.fields.map((field, index) => {
+                  const Field: React.FC<any> | undefined =
+                    fields?.[field.blockType as keyof typeof fields]
 
-                    if (Field) {
-                      return (
-                        <div className="mb-6 last:mb-0" key={index}>
-                          <Field
-                            form={formFromProps}
-                            {...field}
-                            {...formMethods}
-                            control={control}
-                            errors={errors}
-                            register={register}
-                          />
-                        </div>
-                      )
-                    }
-                    return null
-                  })}
+                  if (Field) {
+                    return (
+                      <div className="mb-5 last:mb-0" key={index}>
+                        <Field
+                          form={formFromProps}
+                          {...field}
+                          {...formMethods}
+                          control={control}
+                          errors={errors}
+                          register={register}
+                        />
+                      </div>
+                    )
+                  }
+                  return null
+                })}
               </div>
 
-              <Button form={formID} type="submit" variant="default">
-                {submitButtonLabel}
+              <Button
+                form={String(formID)}
+                type="submit"
+                disabled={isLoading}
+                className="bg-slate-900 hover:bg-slate-800 text-white rounded-none px-6 py-2.5 font-medium transition-colors cursor-pointer"
+              >
+                {isLoading ? 'Mengirim...' : submitButtonLabel || 'Kirim'}
               </Button>
             </form>
           )}

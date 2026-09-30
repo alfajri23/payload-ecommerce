@@ -10,6 +10,7 @@ import { adminOrPublishedStatus } from '@/access/adminOrPublishedStatus'
 import { customerOnlyFieldAccess } from '@/access/customerOnlyFieldAccess'
 import { isAdmin } from '@/access/isAdmin'
 import { isDocumentOwner } from '@/access/isDocumentOwner'
+import { publicAccess } from '@/access/publicAccess'
 import { ProductsCollection } from '@/collections/Products'
 import { Page, Product } from '@/payload-types'
 import { getServerSideURL } from '@/utilities/getURL'
@@ -35,6 +36,7 @@ export const plugins: Plugin[] = [
     },
     formSubmissionOverrides: {
       access: {
+        create: publicAccess,
         delete: isAdmin,
         read: isAdmin,
         update: isAdmin,
@@ -45,10 +47,10 @@ export const plugins: Plugin[] = [
     },
     formOverrides: {
       access: {
-        delete: isAdmin,
-        read: isAdmin,
-        update: isAdmin,
         create: isAdmin,
+        delete: isAdmin,
+        read: publicAccess,
+        update: isAdmin,
       },
       admin: {
         group: 'Content',
