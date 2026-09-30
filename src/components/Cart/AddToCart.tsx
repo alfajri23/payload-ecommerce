@@ -2,11 +2,13 @@
 
 import { Button } from '@/components/ui/button'
 import type { Product, Variant } from '@/payload-types'
+import { isInventoryValidationEnabled } from '@/utilities/isInventoryEnabled'
 
 import { useCart } from '@payloadcms/plugin-ecommerce/client/react'
 import clsx from 'clsx'
-import { useSearchParams } from 'next/navigation'
-import React, { useCallback, useMemo } from 'react'
+import { ShoppingBag } from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import React, { useCallback, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 type Props = {
   product: Product
@@ -14,7 +16,10 @@ type Props = {
 
 export function AddToCart({ product }: Props) {
   const { addItem, cart, isLoading } = useCart()
+  const router = useRouter()
   const searchParams = useSearchParams()
+  const [isBuyingNow, setIsBuyingNow] = useState(false)
+  const checkInventory = isInventoryValidationEnabled()
 
   const variants = product.variants?.docs || []
 
@@ -55,7 +60,39 @@ export function AddToCart({ product }: Props) {
     [addItem, product, selectedVariant],
   )
 
+  const handleBuyNow = useCallback(
+    async (e: React.FormEvent<HTMLButtonElement>) => {
+      e.preventDefault()
+      setIsBuyingNow(true)
+
+      try {
+        await addItem({
+          product: product.id,
+          variant: selectedVariant?.id ?? undefined,
+        })
+        router.push('/cart')
+      } catch (err) {
+        console.error('Buy now error:', err)
+        toast.error('Gagal memproses pesanan.')
+      } finally {
+        setIsBuyingNow(false)
+      }
+    },
+    [addItem, product, selectedVariant, router],
+  )
+
   const disabled = useMemo<boolean>(() => {
+    // Jika produk memiliki varian, wajib memilih varian terlebih dahulu
+    if (product.enableVariants && !selectedVariant) {
+      return true
+    }
+
+    // Jika validasi stok dinonaktifkan, tombol selalu aktif untuk pembelian
+    if (!checkInventory) {
+      return false
+    }
+
+    // Validasi stok aktif (mode ketat)
     const existingItem = cart?.items?.find((item) => {
       const productID = typeof item.product === 'object' ? item.product?.id : item.product
       const variantID = item.variant
@@ -82,11 +119,7 @@ export function AddToCart({ product }: Props) {
     }
 
     if (product.enableVariants) {
-      if (!selectedVariant) {
-        return true
-      }
-
-      if (selectedVariant.inventory === 0) {
+      if (selectedVariant && selectedVariant.inventory === 0) {
         return true
       }
     } else {
@@ -96,20 +129,61 @@ export function AddToCart({ product }: Props) {
     }
 
     return false
-  }, [selectedVariant, cart?.items, product])
+  }, [selectedVariant, cart?.items, product, checkInventory])
+
+  const isVariantMissing = Boolean(product.enableVariants && !selectedVariant)
+
+  const buyButtonLabel = isBuyingNow
+    ? 'Memproses...'
+    : isVariantMissing
+      ? 'Pilih Varian'
+      : disabled
+        ? 'Stok Habis'
+        : 'Beli Sekarang'
+
+  const cartButtonLabel = isLoading
+    ? 'Menambahkan...'
+    : isVariantMissing
+      ? 'Pilih Varian'
+      : disabled
+        ? 'Stok Habis'
+        : 'Tambah ke Keranjang'
 
   return (
-    <Button
-      aria-label="Add to cart"
-      variant={'outline'}
-      className={clsx({
-        'hover:opacity-90': true,
-      })}
-      disabled={disabled || isLoading}
-      onClick={addToCart}
-      type="submit"
-    >
-      Add To Cart
-    </Button>
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+      {/* Primary Action: Buy Now */}
+      <Button
+        aria-label="Beli sekarang"
+        disabled={disabled || isLoading || isBuyingNow}
+        onClick={handleBuyNow}
+        type="button"
+        className={clsx(
+          'w-full h-12 rounded-none font-medium text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2',
+          disabled || isLoading || isBuyingNow
+            ? 'bg-slate-200 text-slate-400 cursor-not-allowed border-0'
+            : 'bg-slate-900 hover:bg-black text-white cursor-pointer active:scale-[0.99] border-0 focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2',
+        )}
+      >
+        <span>{buyButtonLabel}</span>
+      </Button>
+
+      {/* Secondary Action: Add to Cart */}
+      <Button
+        aria-label="Tambah ke keranjang"
+        disabled={disabled || isLoading || isBuyingNow}
+        onClick={addToCart}
+        type="button"
+        variant="outline"
+        className={clsx(
+          'w-full h-12 rounded-none font-medium text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2 border',
+          disabled || isLoading || isBuyingNow
+            ? 'border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed'
+            : 'border-slate-300 bg-white text-slate-900 hover:border-slate-900 hover:bg-slate-50 cursor-pointer active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2',
+        )}
+      >
+        <ShoppingBag className="h-4 w-4" />
+        <span>{cartButtonLabel}</span>
+      </Button>
+    </div>
   )
 }

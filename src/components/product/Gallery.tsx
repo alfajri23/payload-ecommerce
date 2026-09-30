@@ -1,14 +1,11 @@
 'use client'
 
-import type { Media as MediaType, Product } from '@/payload-types'
+import type { Product } from '@/payload-types'
 
 import { Media } from '@/components/Media'
-import { GridTileImage } from '@/components/Grid/tile'
 import { useSearchParams } from 'next/navigation'
-import React, { useEffect } from 'react'
-
-import { Carousel, CarouselApi, CarouselContent, CarouselItem } from '@/components/ui/carousel'
 import { DefaultDocumentIDType } from 'payload'
+import React, { useEffect } from 'react'
 
 type Props = {
   gallery: NonNullable<Product['gallery']>
@@ -17,18 +14,11 @@ type Props = {
 export const Gallery: React.FC<Props> = ({ gallery }) => {
   const searchParams = useSearchParams()
   const [current, setCurrent] = React.useState(0)
-  const [api, setApi] = React.useState<CarouselApi>()
-
-  useEffect(() => {
-    if (!api) {
-      return
-    }
-  }, [api])
 
   useEffect(() => {
     const values = Array.from(searchParams.values())
 
-    if (values && api) {
+    if (values) {
       const index = gallery.findIndex((item) => {
         if (!item.variantOption) return false
 
@@ -40,40 +30,60 @@ export const Gallery: React.FC<Props> = ({ gallery }) => {
 
         return Boolean(values.find((value) => value === String(variantID)))
       })
+      console.log(index)
       if (index !== -1) {
         setCurrent(index)
-        api.scrollTo(index, true)
+      } else {
+        setCurrent(0)
       }
     }
-  }, [searchParams, api, gallery])
+  }, [searchParams, gallery])
 
   return (
-    <div>
-      <div className="relative w-full overflow-hidden mb-8">
-        <Media
-          resource={gallery[current].image}
-          className="w-full"
-          imgClassName="w-full rounded-lg"
-        />
+    <div className="flex flex-col gap-4">
+      {/* 1:1 Square Main Image with clean sharp edges (no radius) */}
+      <div className="relative aspect-square w-full rounded-none overflow-hidden bg-slate-50 border border-slate-200/80">
+        {gallery[current]?.image && typeof gallery[current].image === 'object' && (
+          <Media
+            resource={gallery[current].image}
+            fill
+            priority
+            className="h-full w-full"
+            imgClassName="h-full w-full object-cover rounded-none"
+          />
+        )}
       </div>
 
-      <Carousel setApi={setApi} className="w-full" opts={{ align: 'start', loop: false }}>
-        <CarouselContent>
+      {/* Thumbnails without radius */}
+      {gallery.length > 1 && (
+        <div className="flex items-center gap-2.5 overflow-x-auto pt-1 pb-1">
           {gallery.map((item, i) => {
             if (typeof item.image !== 'object') return null
 
+            const isSelected = i === current
+
             return (
-              <CarouselItem
-                className="basis-1/5"
+              <button
+                type="button"
                 key={`${item.image.id}-${i}`}
                 onClick={() => setCurrent(i)}
+                aria-label={`Lihat gambar produk ke-${i + 1}`}
+                className={`relative h-16 w-16 sm:h-20 sm:w-20 shrink-0 rounded-none overflow-hidden border transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${isSelected
+                  ? 'border-2 border-slate-900 ring-1 ring-slate-900/10 opacity-100'
+                  : 'border-slate-200 opacity-60 hover:opacity-100 hover:border-slate-400'
+                  }`}
               >
-                <GridTileImage active={i === current} media={item.image} />
-              </CarouselItem>
+                <Media
+                  resource={item.image}
+                  fill
+                  className="h-full w-full"
+                  imgClassName="h-full w-full object-cover rounded-none"
+                />
+              </button>
             )
           })}
-        </CarouselContent>
-      </Carousel>
+        </div>
+      )}
     </div>
   )
 }

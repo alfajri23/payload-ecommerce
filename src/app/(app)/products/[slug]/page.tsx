@@ -1,10 +1,9 @@
 import type { Media, Product } from '@/payload-types'
 
 import { RenderBlocks } from '@/blocks/RenderBlocks'
-import { GridTileImage } from '@/components/Grid/tile'
+import { ProductGridItem } from '@/components/ProductGridItem'
 import { Gallery } from '@/components/product/Gallery'
 import { ProductDescription } from '@/components/product/ProductDescription'
-import { Button } from '@/components/ui/button'
 import configPromise from '@payload-config'
 import { ChevronLeftIcon } from 'lucide-react'
 import { Metadata } from 'next'
@@ -117,26 +116,36 @@ export default async function ProductPage({ params }: Args) {
         }}
         type="application/ld+json"
       />
-      <div className="container pt-8 pb-8">
-        <Button asChild variant="ghost" className="mb-4">
-          <Link href="/shop">
-            <ChevronLeftIcon />
-            All products
+      <div className="container mx-auto px-4 sm:px-8 lg:px-12 py-8 sm:py-12">
+        {/* Navigation Breadcrumb / Back Link */}
+        <nav aria-label="Breadcrumb" className="mb-8">
+          <Link
+            href="/shop"
+            className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-slate-500 hover:text-slate-900 transition-colors"
+          >
+            <ChevronLeftIcon className="h-3.5 w-3.5" />
+            <span>Kembali ke Katalog Produk</span>
           </Link>
-        </Button>
-        <div className="flex flex-col gap-12 rounded-lg border p-8 md:py-12 lg:flex-row lg:gap-8 bg-primary-foreground">
-          <div className="h-full w-full basis-full lg:basis-1/2">
+        </nav>
+
+        {/* Clean, open 2-column showcase without card boxing */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
+          {/* Gallery Column */}
+          <div className="lg:col-span-6 xl:col-span-7">
             <Suspense
               fallback={
-                <div className="relative aspect-square h-full max-h-[550px] w-full overflow-hidden" />
+                <div className="relative aspect-square w-full rounded-none bg-slate-50 animate-pulse border border-slate-100" />
               }
             >
               {Boolean(gallery?.length) && <Gallery gallery={gallery} />}
             </Suspense>
           </div>
 
-          <div className="basis-full lg:basis-1/2">
-            <ProductDescription product={product} />
+          {/* Product Info & Buying Actions Column */}
+          <div className="lg:col-span-6 xl:col-span-5">
+            <Suspense fallback={null}>
+              <ProductDescription product={product} />
+            </Suspense>
           </div>
         </div>
       </div>
@@ -144,7 +153,7 @@ export default async function ProductPage({ params }: Args) {
       {product.layout?.length ? <RenderBlocks blocks={product.layout} /> : <></>}
 
       {relatedProducts.length ? (
-        <div className="container">
+        <div className="container mx-auto px-4 sm:px-8 lg:px-12">
           <RelatedProducts products={relatedProducts as Product[]} />
         </div>
       ) : (
@@ -158,27 +167,29 @@ function RelatedProducts({ products }: { products: Product[] }) {
   if (!products.length) return null
 
   return (
-    <div className="py-8">
-      <h2 className="mb-4 text-2xl font-bold">Related Products</h2>
-      <ul className="flex w-full gap-4 overflow-x-auto pt-1">
-        {products.map((product) => (
-          <li
-            className="aspect-square w-full flex-none min-[475px]:w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/5"
-            key={product.id}
-          >
-            <Link className="relative h-full w-full" href={`/products/${product.slug}`}>
-              <GridTileImage
-                label={{
-                  amount: product.priceInIDR!,
-                  title: product.title,
-                }}
-                media={product.meta?.image as Media}
-              />
-            </Link>
-          </li>
+    <section className="py-16 border-t border-slate-200 mt-12">
+      <div className="flex items-end justify-between mb-8">
+        <div>
+          <p className="text-xs uppercase tracking-widest font-semibold text-slate-400">
+            Rekomendasi Kami
+          </p>
+          <h2 className="text-2xl font-medium tracking-tight text-slate-900 mt-1">
+            Produk Pilihan Lainnya
+          </h2>
+        </div>
+        <Link
+          href="/shop"
+          className="text-xs font-medium text-slate-600 hover:text-slate-900 transition-colors"
+        >
+          Lihat Semua Produk &rarr;
+        </Link>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        {products.slice(0, 4).map((product) => (
+          <ProductGridItem key={product.id} product={product} />
         ))}
-      </ul>
-    </div>
+      </div>
+    </section>
   )
 }
 

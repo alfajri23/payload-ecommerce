@@ -1,15 +1,15 @@
 import type { CollectionSlug, GlobalSlug, Payload, PayloadRequest, File } from 'payload'
 
+import {
+  BAKERY_CATEGORIES,
+  BAKERY_PRODUCTS,
+  BAKERY_VARIANT_TYPES,
+  type SeedProduct,
+} from './bakery-data'
 import { contactFormData } from './contact-form'
 import { contactPageData } from './contact-page'
-import { productHatData } from './product-hat'
-import { productTshirtData, productTshirtVariant } from './product-tshirt'
 import { homePageData } from './home'
-import { imageHatData } from './image-hat'
-import { imageTshirtBlackData } from './image-tshirt-black'
-import { imageTshirtWhiteData } from './image-tshirt-white'
-import { imageHero1Data } from './image-hero-1'
-import { Address, Transaction, VariantOption } from '@/payload-types'
+import type { Category, VariantOption } from '@/payload-types'
 
 const collections: CollectionSlug[] = [
   'categories',
@@ -27,51 +27,8 @@ const collections: CollectionSlug[] = [
   'orders',
 ]
 
-const categories = ['Accessories', 'T-Shirts', 'Hats']
-
-const sizeVariantOptions = [
-  { label: 'Small', value: 'small' },
-  { label: 'Medium', value: 'medium' },
-  { label: 'Large', value: 'large' },
-  { label: 'X Large', value: 'xlarge' },
-]
-
-const colorVariantOptions = [
-  { label: 'Black', value: 'black' },
-  { label: 'White', value: 'white' },
-]
-
 const globals: GlobalSlug[] = ['header', 'footer']
 
-const baseAddressUSData: Transaction['billingAddress'] = {
-  title: 'Dr.',
-  firstName: 'Otto',
-  lastName: 'Octavius',
-  phone: '1234567890',
-  company: 'Oscorp',
-  addressLine1: '123 Main St',
-  addressLine2: 'Suite 100',
-  city: 'New York',
-  state: 'NY',
-  postalCode: '10001',
-  country: 'US',
-}
-
-const baseAddressUKData: Transaction['billingAddress'] = {
-  title: 'Mr.',
-  firstName: 'Oliver',
-  lastName: 'Twist',
-  phone: '1234567890',
-  addressLine1: '48 Great Portland St',
-  city: 'London',
-  postalCode: 'W1W 7ND',
-  country: 'GB',
-}
-
-// Next.js revalidation errors are normal when seeding the database without a server running
-// i.e. running `yarn seed` locally instead of using the admin UI within an active app
-// The app is not running to revalidate the pages and so the API routes are not available
-// These error messages can be ignored: `Error hitting revalidate route for...`
 export const seed = async ({
   payload,
   req,
@@ -79,15 +36,11 @@ export const seed = async ({
   payload: Payload
   req: PayloadRequest
 }): Promise<void> => {
-  payload.logger.info('Seeding database...')
+  payload.logger.info('Seeding database for The Bakery...')
 
-  // we need to clear the media directory before seeding
-  // as well as the collections and globals
-  // this is because while `yarn seed` drops the database
-  // the custom `/api/seed` endpoint does not
-  payload.logger.info(`— Clearing collections and globals...`)
+  payload.logger.info('— Clearing collections and globals...')
 
-  // clear the database
+  // 1. Reset globals
   await Promise.all(
     globals.map((global) =>
       payload.updateGlobal({
@@ -103,6 +56,7 @@ export const seed = async ({
     ),
   )
 
+  // 2. Clear collections (pass req for transaction atomicity)
   for (const collection of collections) {
     await payload.db.deleteMany({ collection, req, where: {} })
     if (payload.collections[collection].config.versions) {
@@ -110,8 +64,7 @@ export const seed = async ({
     }
   }
 
-  payload.logger.info(`— Seeding customer and customer data...`)
-
+  // 3. Clear existing customer user if exists
   await payload.delete({
     collection: 'users',
     depth: 0,
@@ -120,207 +73,188 @@ export const seed = async ({
         equals: 'customer@example.com',
       },
     },
+    req,
   })
 
-  payload.logger.info(`— Seeding media...`)
+  payload.logger.info('— Creating sample customer...')
+  const customer = await payload.create({
+    collection: 'users',
+    data: {
+      name: 'Pelanggan Setia',
+      email: 'customer@example.com',
+      password: 'password',
+      roles: ['customer'],
+    },
+    req,
+  })
 
-  const [imageHatBuffer, imageTshirtBlackBuffer, imageTshirtWhiteBuffer, heroBuffer] =
-    await Promise.all([
-      fetchFileByURL(
-        'https://raw.githubusercontent.com/payloadcms/payload/refs/heads/3.x/templates/ecommerce/src/endpoints/seed/hat-logo.png',
-      ),
-      fetchFileByURL(
-        'https://raw.githubusercontent.com/payloadcms/payload/refs/heads/3.x/templates/ecommerce/src/endpoints/seed/tshirt-black.png',
-      ),
-      fetchFileByURL(
-        'https://raw.githubusercontent.com/payloadcms/payload/refs/heads/3.x/templates/ecommerce/src/endpoints/seed/tshirt-white.png',
-      ),
-      fetchFileByURL(
-        'https://raw.githubusercontent.com/payloadcms/payload/refs/heads/3.x/templates/website/src/endpoints/seed/image-hero1.webp',
-      ),
-    ])
-
-  const [
-    customer,
-    imageHat,
-    imageTshirtBlack,
-    imageTshirtWhite,
-    imageHero,
-    accessoriesCategory,
-    tshirtsCategory,
-    hatsCategory,
-  ] = await Promise.all([
-    payload.create({
-      collection: 'users',
+  // 4. Seed Categories
+  payload.logger.info('— Seeding bakery categories...')
+  const categoryMap = new Map<string, Category>()
+  for (const cat of BAKERY_CATEGORIES) {
+    const createdCat = await payload.create({
+      collection: 'categories',
       data: {
-        name: 'Customer',
-        email: 'customer@example.com',
-        password: 'password',
-        roles: ['customer'],
+        title: cat.title,
+        slug: cat.slug,
       },
-    }),
-    payload.create({
-      collection: 'media',
-      data: imageHatData,
-      file: imageHatBuffer,
-    }),
-    payload.create({
-      collection: 'media',
-      data: imageTshirtBlackData,
-      file: imageTshirtBlackBuffer,
-    }),
-    payload.create({
-      collection: 'media',
-      data: imageTshirtWhiteData,
-      file: imageTshirtWhiteBuffer,
-    }),
-    payload.create({
-      collection: 'media',
-      data: imageHero1Data,
-      file: heroBuffer,
-    }),
-    ...categories.map((category) =>
-      payload.create({
-        collection: 'categories',
-        data: {
-          title: category,
-          slug: category,
-        },
-      }),
-    ),
-  ])
+      req,
+    })
+    categoryMap.set(cat.slug, createdCat)
+  }
 
-  payload.logger.info(`— Seeding variant types and options...`)
+  // 5. Seed Variant Types & Options
+  payload.logger.info('— Seeding variant types (Ukuran & Warna/Tema)...')
 
+  // 5a. Variant Type: Ukuran (Size)
   const sizeVariantType = await payload.create({
     collection: 'variantTypes',
     data: {
-      name: 'size',
-      label: 'Size',
+      name: BAKERY_VARIANT_TYPES.size.name,
+      label: BAKERY_VARIANT_TYPES.size.label,
     },
+    req,
   })
 
-  const sizeVariantOptionsResults: VariantOption[] = []
-
-  for (const option of sizeVariantOptions) {
-    const result = await payload.create({
+  const sizeOptionMap = new Map<string, VariantOption>()
+  for (const opt of BAKERY_VARIANT_TYPES.size.options) {
+    const createdOpt = await payload.create({
       collection: 'variantOptions',
       data: {
-        ...option,
+        label: opt.label,
+        value: opt.value,
         variantType: sizeVariantType.id,
       },
+      req,
     })
-    sizeVariantOptionsResults.push(result)
+    sizeOptionMap.set(opt.value, createdOpt)
   }
 
-  const [small, medium, large, xlarge] = sizeVariantOptionsResults
-
+  // 5b. Variant Type: Warna/Tema (Color)
   const colorVariantType = await payload.create({
     collection: 'variantTypes',
     data: {
-      name: 'color',
-      label: 'Color',
+      name: BAKERY_VARIANT_TYPES.color.name,
+      label: BAKERY_VARIANT_TYPES.color.label,
     },
+    req,
   })
 
-  const [black, white] = await Promise.all(
-    colorVariantOptions.map((option) => {
-      return payload.create({
-        collection: 'variantOptions',
-        data: {
-          ...option,
-          variantType: colorVariantType.id,
-        },
-      })
-    }),
-  )
-
-  payload.logger.info(`— Seeding products...`)
-
-  const productHat = await payload.create({
-    collection: 'products',
-    depth: 0,
-    data: productHatData({
-      galleryImage: imageHat,
-      metaImage: imageHat,
-      variantTypes: [colorVariantType],
-      categories: [hatsCategory],
-      relatedProducts: [],
-    }),
-  })
-
-  const productTshirt = await payload.create({
-    collection: 'products',
-    depth: 0,
-    data: productTshirtData({
-      galleryImages: [
-        { image: imageTshirtBlack, variantOption: black },
-        { image: imageTshirtWhite, variantOption: white },
-      ],
-      metaImage: imageTshirtBlack,
-      contentImage: imageHero,
-      variantTypes: [colorVariantType, sizeVariantType],
-      categories: [tshirtsCategory],
-      relatedProducts: [productHat],
-    }),
-  })
-
-  let hoodieID: number | string = productTshirt.id
-
-  if (payload.db.defaultIDType === 'text') {
-    hoodieID = `"${hoodieID}"`
+  const colorOptionMap = new Map<string, VariantOption>()
+  for (const opt of BAKERY_VARIANT_TYPES.color.options) {
+    const createdOpt = await payload.create({
+      collection: 'variantOptions',
+      data: {
+        label: opt.label,
+        value: opt.value,
+        variantType: colorVariantType.id,
+      },
+      req,
+    })
+    colorOptionMap.set(opt.value, createdOpt)
   }
 
-  const [
-    smallTshirtHoodieVariant,
-    mediumTshirtHoodieVariant,
-    largeTshirtHoodieVariant,
-    xlargeTshirtHoodieVariant,
-  ] = await Promise.all(
-    [small, medium, large, xlarge].map((variantOption) =>
-      payload.create({
-        collection: 'variants',
-        depth: 0,
-        data: productTshirtVariant({
-          product: productTshirt,
-          variantOptions: [variantOption, white],
-        }),
-      }),
-    ),
-  )
+  // 6. Seed Bakery Products & Media Images
+  payload.logger.info('— Seeding bakery products with images and tiered variants...')
 
-  await Promise.all(
-    [small, medium, large, xlarge].map((variantOption) =>
-      payload.create({
-        collection: 'variants',
-        depth: 0,
-        data: productTshirtVariant({
-          product: productTshirt,
-          variantOptions: [variantOption, black],
-          ...(variantOption.value === 'medium' ? { inventory: 0 } : {}),
-        }),
-      }),
-    ),
-  )
+  const createdProducts: any[] = []
+  const createdCakeVariants: any[] = []
 
-  payload.logger.info(`— Seeding contact form...`)
+  for (const productDef of BAKERY_PRODUCTS) {
+    // 6a. Download 1 product image
+    let mediaDoc: any = null
+    try {
+      const fileData = await fetchImageFile(productDef.imageUrl, productDef.slug)
+      mediaDoc = await payload.create({
+        collection: 'media',
+        data: {
+          alt: productDef.title,
+        },
+        file: fileData,
+        req,
+      })
+    } catch (err) {
+      payload.logger.warn(`Could not download image for ${productDef.slug}: ${err}`)
+    }
 
+    const category = categoryMap.get(productDef.categorySlug)
+
+    // 6b. Create Product document
+    const productDoc = await payload.create({
+      collection: 'products',
+      depth: 0,
+      data: {
+        title: productDef.title,
+        slug: productDef.slug,
+        description: productDef.description,
+        priceInIDR: productDef.priceInIDR,
+        priceInIDREnabled: true,
+        enableVariants: productDef.enableVariants,
+        variantTypes: productDef.enableVariants ? [sizeVariantType.id, colorVariantType.id] : [],
+        categories: category ? [category.id] : [],
+        gallery: mediaDoc ? [{ image: mediaDoc.id }] : [],
+        meta: {
+          title: `${productDef.title} | The Bakery`,
+          description: productDef.description,
+          image: mediaDoc ? mediaDoc.id : undefined,
+        },
+        _status: 'published',
+      },
+      req,
+    })
+
+    createdProducts.push(productDoc)
+
+    // 6c. If product has variants, create variant documents with tiered pricing
+    if (productDef.enableVariants && productDef.variants && productDef.variants.length > 0) {
+      for (const variantDef of productDef.variants) {
+        const sizeOpt = sizeOptionMap.get(variantDef.sizeValue)
+        const colorOpt = colorOptionMap.get(variantDef.colorValue)
+
+        if (sizeOpt && colorOpt) {
+          const variantDoc = await payload.create({
+            collection: 'variants',
+            depth: 0,
+            data: {
+              title: `${productDef.title} — ${sizeOpt.label} — ${colorOpt.label}`,
+              product: productDoc.id,
+              options: [sizeOpt.id, colorOpt.id],
+              priceInIDR: variantDef.priceInIDR,
+              priceInIDREnabled: true,
+              inventory: 20,
+              _status: 'published',
+            },
+            req,
+          })
+          createdCakeVariants.push(variantDoc)
+        }
+      }
+    }
+  }
+
+  // 7. Seed Contact Form & Pages
+  payload.logger.info('— Seeding contact form and pages...')
   const contactForm = await payload.create({
     collection: 'forms',
     depth: 0,
     data: contactFormData(),
+    req,
   })
 
-  payload.logger.info(`— Seeding pages...`)
+  const heroMedia = createdProducts[0]?.gallery?.[0]?.image || null
 
-  const [_, contactPage] = await Promise.all([
+  await Promise.all([
     payload.create({
       collection: 'pages',
       depth: 0,
       data: homePageData({
-        contentImage: imageHero,
-        metaImage: imageHat,
+        contentImage: heroMedia,
+        metaImage: heroMedia,
       }),
+      context: {
+        disableRevalidate: true,
+      },
+      req,
     }),
     payload.create({
       collection: 'pages',
@@ -328,173 +262,67 @@ export const seed = async ({
       data: contactPageData({
         contactForm: contactForm,
       }),
+      context: {
+        disableRevalidate: true,
+      },
+      req,
     }),
   ])
 
-  payload.logger.info(`— Seeding addresses...`)
+  // 8. Seed 2 Realistic Orders (Showcasing Custom Admin Status Badges)
+  payload.logger.info('— Seeding sample bakery orders...')
+  const firstCake = createdProducts[0]
+  const firstVariant = createdCakeVariants[0]
 
-  const customerUSAddress = await payload.create({
-    collection: 'addresses',
-    depth: 0,
-    data: {
-      customer: customer.id,
-      ...(baseAddressUSData as Address),
-    },
-  })
+  if (firstCake) {
+    // Order 1: Sedang Diproses & Sudah Bayar
+    await payload.create({
+      collection: 'orders',
+      data: {
+        amount: firstVariant ? firstVariant.priceInIDR : firstCake.priceInIDR,
+        currency: 'IDR',
+        customer: customer.id,
+        customerName: 'Siti Rahmawati',
+        customerPhone: '081299887766',
+        message: 'Mohon lilin angka 25 dan ucapan "Happy Birthday Sarah!"',
+        orderProgress: 'diproses',
+        paymentStatus: 'paid',
+        items: [
+          {
+            product: firstCake.id,
+            variant: firstVariant ? firstVariant.id : undefined,
+            quantity: 1,
+          },
+        ],
+      },
+      req,
+    })
 
-  const customerUKAddress = await payload.create({
-    collection: 'addresses',
-    depth: 0,
-    data: {
-      customer: customer.id,
-      ...(baseAddressUKData as Address),
-    },
-  })
-
-  payload.logger.info(`— Seeding transactions...`)
-
-  const pendingTransaction = await payload.create({
-    collection: 'transactions',
-    data: {
-      currency: 'IDR',
-      customer: customer.id,
-      status: 'pending',
-      billingAddress: baseAddressUSData,
-    } as any,
-  })
-
-  const succeededTransaction = await payload.create({
-    collection: 'transactions',
-    data: {
-      currency: 'IDR',
-      customer: customer.id,
-      status: 'succeeded',
-      billingAddress: baseAddressUSData,
-    } as any,
-  })
-
-  let succeededTransactionID: number | string = succeededTransaction.id
-
-  if (payload.db.defaultIDType === 'text') {
-    succeededTransactionID = `"${succeededTransactionID}"`
+    // Order 2: Belum Konfirmasi & Belum Bayar
+    await payload.create({
+      collection: 'orders',
+      data: {
+        amount: 145000,
+        currency: 'IDR',
+        customer: customer.id,
+        customerName: 'Budi Hartono',
+        customerPhone: '085711223344',
+        message: 'Pengiriman kurir instan untuk jam 10 pagi',
+        orderProgress: 'belum_konfirmasi',
+        paymentStatus: 'unpaid',
+        items: [
+          {
+            product: firstCake.id,
+            quantity: 1,
+          },
+        ],
+      },
+      req,
+    })
   }
 
-  payload.logger.info(`— Seeding carts...`)
-
-  // This cart is open as it's created now
-  const openCart = await payload.create({
-    collection: 'carts',
-    data: {
-      customer: customer.id,
-      currency: 'IDR',
-      items: [
-        {
-          product: productTshirt.id,
-          variant: mediumTshirtHoodieVariant.id,
-          quantity: 1,
-        },
-      ],
-    },
-  })
-
-  const oldTimestamp = new Date('2023-01-01T00:00:00Z').toISOString()
-
-  // Cart is abandoned because it was created long in the past
-  const abandonedCart = await payload.create({
-    collection: 'carts',
-    data: {
-      currency: 'IDR',
-      createdAt: oldTimestamp,
-      items: [
-        {
-          product: productHat.id,
-          quantity: 1,
-        },
-      ],
-    },
-  })
-
-  // Cart is purchased because it has a purchasedAt date
-  const completedCart = await payload.create({
-    collection: 'carts',
-    data: {
-      customer: customer.id,
-      currency: 'IDR',
-      purchasedAt: new Date().toISOString(),
-      subtotal: 7499,
-      items: [
-        {
-          product: productTshirt.id,
-          variant: smallTshirtHoodieVariant.id,
-          quantity: 1,
-        },
-        {
-          product: productTshirt.id,
-          variant: mediumTshirtHoodieVariant.id,
-          quantity: 1,
-        },
-      ],
-    },
-  })
-
-  let completedCartID: number | string = completedCart.id
-
-  if (payload.db.defaultIDType === 'text') {
-    completedCartID = `"${completedCartID}"`
-  }
-
-  payload.logger.info(`— Seeding orders...`)
-
-  const orderInCompleted = await payload.create({
-    collection: 'orders',
-    data: {
-      amount: 7499,
-      currency: 'IDR',
-      customer: customer.id,
-      shippingAddress: baseAddressUSData,
-      items: [
-        {
-          product: productTshirt.id,
-          variant: smallTshirtHoodieVariant.id,
-          quantity: 1,
-        },
-        {
-          product: productTshirt.id,
-          variant: mediumTshirtHoodieVariant.id,
-          quantity: 1,
-        },
-      ],
-      status: 'completed',
-      transactions: [succeededTransaction.id],
-    } as any,
-  })
-
-  const orderInProcessing = await payload.create({
-    collection: 'orders',
-    data: {
-      amount: 7499,
-      currency: 'IDR',
-      customer: customer.id,
-      shippingAddress: baseAddressUSData,
-      items: [
-        {
-          product: productTshirt.id,
-          variant: smallTshirtHoodieVariant.id,
-          quantity: 1,
-        },
-        {
-          product: productTshirt.id,
-          variant: mediumTshirtHoodieVariant.id,
-          quantity: 1,
-        },
-      ],
-      status: 'processing',
-      transactions: [succeededTransaction.id],
-    } as any,
-  })
-
-  payload.logger.info(`— Seeding globals...`)
-
+  // 10. Update Header & Footer Globals
+  payload.logger.info('— Seeding navigation globals...')
   await Promise.all([
     payload.updateGlobal({
       slug: 'header',
@@ -503,26 +331,27 @@ export const seed = async ({
           {
             link: {
               type: 'custom',
-              label: 'Home',
+              label: 'Beranda',
               url: '/',
             },
           },
           {
             link: {
               type: 'custom',
-              label: 'Shop',
+              label: 'Katalog Shop',
               url: '/shop',
             },
           },
           {
             link: {
               type: 'custom',
-              label: 'Account',
+              label: 'Akun Saya',
               url: '/account',
             },
           },
         ],
       },
+      req,
     }),
     payload.updateGlobal({
       slug: 'footer',
@@ -531,57 +360,42 @@ export const seed = async ({
           {
             link: {
               type: 'custom',
-              label: 'Admin',
+              label: 'Katalog Roti',
+              url: '/shop',
+            },
+          },
+          {
+            link: {
+              type: 'custom',
+              label: 'Admin Panel',
               url: '/admin',
-            },
-          },
-          {
-            link: {
-              type: 'custom',
-              label: 'Find my order',
-              url: '/find-order',
-            },
-          },
-          {
-            link: {
-              type: 'custom',
-              label: 'Source Code',
-              newTab: true,
-              url: 'https://github.com/payloadcms/payload/tree/3.x/templates/website',
-            },
-          },
-          {
-            link: {
-              type: 'custom',
-              label: 'Payload',
-              newTab: true,
-              url: 'https://payloadcms.com/',
             },
           },
         ],
       },
+      req,
     }),
   ])
 
-  payload.logger.info('Seeded database successfully!')
+  payload.logger.info('Database seeded successfully for The Bakery!')
 }
 
-async function fetchFileByURL(url: string): Promise<File> {
-  const res = await fetch(url, {
-    credentials: 'include',
-    method: 'GET',
-  })
-
+/**
+ * Helper untuk mengunduh gambar remote dan mengembalikannya dalam format File Payload
+ */
+async function fetchImageFile(url: string, filename: string): Promise<File> {
+  const res = await fetch(url)
   if (!res.ok) {
-    throw new Error(`Failed to fetch file from ${url}, status: ${res.status}`)
+    throw new Error(`Failed to fetch image from ${url}, status: ${res.status}`)
   }
 
   const data = await res.arrayBuffer()
+  const buffer = Buffer.from(data)
 
   return {
-    name: url.split('/').pop() || `file-${Date.now()}`,
-    data: Buffer.from(data),
-    mimetype: `image/${url.split('.').pop()}`,
-    size: data.byteLength,
+    name: `${filename}.jpg`,
+    data: buffer,
+    mimetype: 'image/jpeg',
+    size: buffer.length,
   }
 }

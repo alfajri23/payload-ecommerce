@@ -1,5 +1,6 @@
 'use client'
-import { Product, Variant } from '@/payload-types'
+import type { Product, Variant } from '@/payload-types'
+import { isInventoryValidationEnabled } from '@/utilities/isInventoryEnabled'
 import { useSearchParams } from 'next/navigation'
 import { useMemo } from 'react'
 
@@ -9,6 +10,7 @@ type Props = {
 
 export const StockIndicator: React.FC<Props> = ({ product }) => {
   const searchParams = useSearchParams()
+  const checkInventory = isInventoryValidationEnabled()
 
   const variants = product.variants?.docs || []
 
@@ -39,14 +41,41 @@ export const StockIndicator: React.FC<Props> = ({ product }) => {
     return product.inventory || 0
   }, [product.enableVariants, selectedVariant, product.inventory])
 
+  if (!checkInventory) {
+    return (
+      <div className="text-xs font-normal">
+        <span className="inline-flex items-center gap-2 text-emerald-700 font-medium">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
+          Tersedia fresh hari ini
+        </span>
+      </div>
+    )
+  }
+
   if (product.enableVariants && !selectedVariant) {
     return null
   }
 
   return (
-    <div className="uppercase font-mono text-sm font-medium text-gray-500">
-      {stockQuantity < 10 && stockQuantity > 0 && <p>Only {stockQuantity} left in stock</p>}
-      {(stockQuantity === 0 || !stockQuantity) && <p>Out of stock</p>}
+    <div className="text-xs font-normal">
+      {stockQuantity < 10 && stockQuantity > 0 && (
+        <span className="inline-flex items-center gap-2 text-amber-700 font-medium">
+          <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" />
+          Sisa {stockQuantity} porsi untuk hari ini
+        </span>
+      )}
+      {(stockQuantity === 0 || !stockQuantity) && (
+        <span className="inline-flex items-center gap-2 text-rose-600 font-medium">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500 shrink-0" />
+          Stok varian ini sedang habis
+        </span>
+      )}
+      {stockQuantity >= 10 && (
+        <span className="inline-flex items-center gap-2 text-emerald-700 font-medium">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
+          Tersedia fresh hari ini
+        </span>
+      )}
     </div>
   )
 }

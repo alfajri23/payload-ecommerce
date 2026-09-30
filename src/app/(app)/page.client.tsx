@@ -316,7 +316,7 @@ export function HomePageClient({ categoriesWithProducts = [] }: Props) {
               </div>
 
               {/* Grid Produk menggunakan komponen <Grid> dan <ProductGridItem> */}
-              <Grid className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10">
+              <Grid className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-8 sm:gap-10">
                 {category.products.map((product) => (
                   <ProductGridItem key={product.id} product={product} />
                 ))}
