@@ -1,14 +1,13 @@
 'use client'
 import type { Product, Variant } from '@/payload-types'
 
-import { RichText } from '@/components/RichText'
 import { AddToCart } from '@/components/Cart/AddToCart'
 import { Price } from '@/components/Price'
-import React, { Suspense } from 'react'
+import { Suspense } from 'react'
 
-import { VariantSelector } from './VariantSelector'
-import { useCurrency } from '@payloadcms/plugin-ecommerce/client/react'
 import { StockIndicator } from '@/components/product/StockIndicator'
+import { useCurrency } from '@payloadcms/plugin-ecommerce/client/react'
+import { VariantSelector } from './VariantSelector'
 
 export function ProductDescription({ product }: { product: Product }) {
   const { currency } = useCurrency()
@@ -64,7 +63,8 @@ export function ProductDescription({ product }: { product: Product }) {
         </div>
       </div>
       {product.description ? (
-        <RichText className="" data={product.description} enableGutter={false} />
+        // <RichText className="" data={product.description} enableGutter={false} />
+        <p>{product.description}</p>
       ) : null}
       <hr />
       {hasVariants && (
