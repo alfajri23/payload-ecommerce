@@ -55,14 +55,15 @@ export function QuickOrderClient({ products }: Props) {
 
     try {
       for (const [idStr, qty] of Object.entries(selected)) {
-        const productId = Number(idStr)
-        for (let i = 0; i < qty; i++) {
-          await addItem({ product: productId })
+        if (qty > 0) {
+          const productId = Number(idStr)
+          await addItem({ product: productId }, qty)
         }
       }
       toast.success(`${totalItems} item ditambahkan ke keranjang`)
       router.push('/checkout')
     } catch (err) {
+      console.error('Add to cart error:', err)
       toast.error('Gagal menambahkan ke keranjang.')
       setIsAdding(false)
     }
