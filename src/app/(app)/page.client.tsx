@@ -18,6 +18,10 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 
+import { Grid } from '@/components/Grid'
+import { ProductGridItem } from '@/components/ProductGridItem'
+import type { Product } from '@/payload-types'
+
 // Format Rupiah
 const formatRupiah = (amount: number): string => {
   return new Intl.NumberFormat('id-ID', {
@@ -27,118 +31,15 @@ const formatRupiah = (amount: number): string => {
   }).format(amount)
 }
 
-// Product Category Interface
-type ProductCategory = {
-  id: string
-  name: string
-  description: string
-  products: {
-    id: string
+type Props = {
+  categoriesWithProducts?: {
+    id: number | string
     title: string
-    subtitle: string
-    price: number
-    image: string
+    products: Product[]
   }[]
 }
 
-// Product Categories & Products (1:1 Ratio, No Border)
-const PRODUCT_CATEGORIES: ProductCategory[] = [
-  {
-    id: 'sourdough',
-    name: 'Artisan Sourdough & Roti Tradisional',
-    description: 'Fermentasi lambat alami 24 jam dengan starter ragi murni berusia 6 tahun',
-    products: [
-      {
-        id: 'sd-1',
-        title: 'Country Sourdough Loaf',
-        subtitle: 'Fermentasi dingin 24 jam dengan kerak garing kecokelatan',
-        price: 65000,
-        image:
-          'https://images.unsplash.com/photo-1589367920969-ab8e050bbb04?auto=format&fit=crop&w=700&q=85',
-      },
-      {
-        id: 'sd-2',
-        title: 'Traditional French Baguette',
-        subtitle: 'Kerak tipis keemasan renyah dengan remah berongga kenyal khas Paris',
-        price: 32000,
-        image:
-          'https://images.unsplash.com/photo-1597079910443-60c43fc4f729?auto=format&fit=crop&w=700&q=85',
-      },
-      {
-        id: 'sd-3',
-        title: 'Bavarian Pretzels Stacked',
-        subtitle: 'Pretzel panggang mentega bertabur kristal garam laut gurih',
-        price: 32000,
-        image:
-          'https://images.unsplash.com/photo-1549931319-a545dcf3bc73?auto=format&fit=crop&w=700&q=85',
-      },
-    ],
-  },
-  {
-    id: 'viennoiserie',
-    name: 'Viennoiserie & Pastry Prancis',
-    description: 'Dibuat dengan 100% mentega Prancis AOP untuk tekstur berlapis renyah dan lumer',
-    products: [
-      {
-        id: 'vn-1',
-        title: 'French Butter Croissant',
-        subtitle: 'Mentega Prancis AOP dengan tekstur sarang lebah lumer di mulut',
-        price: 35000,
-        image:
-          'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=700&q=85',
-      },
-      {
-        id: 'vn-2',
-        title: 'Pain au Chocolat Valrhona',
-        subtitle: 'Pastry berlapis mentega dengan lelehan cokelat hitam Valrhona 65%',
-        price: 42000,
-        image:
-          'https://images.unsplash.com/photo-1623334044303-241021148842?auto=format&fit=crop&w=700&q=85',
-      },
-      {
-        id: 'vn-3',
-        title: 'Almond Twice-Baked Croissant',
-        subtitle: 'Croissant panggang ulang dengan krim frangipane dan taburan almond',
-        price: 46000,
-        image:
-          'https://images.unsplash.com/photo-1530610476181-d83430b64dcd?auto=format&fit=crop&w=700&q=85',
-      },
-    ],
-  },
-  {
-    id: 'patisserie',
-    name: 'Patisserie & Kudapan Istimewa',
-    description: 'Kudapan manis dan gurih istimewa pendamping kopi dan teh sore',
-    products: [
-      {
-        id: 'pt-1',
-        title: 'Fresh Berry Almond Tartlet',
-        subtitle: 'Crust almond renyah dengan isian vanilla custard dan buah beri segar',
-        price: 48000,
-        image:
-          'https://images.unsplash.com/photo-1509365465985-25d11c17e812?auto=format&fit=crop&w=700&q=85',
-      },
-      {
-        id: 'pt-2',
-        title: 'Caramelized Cinnamon Roll',
-        subtitle: 'Roti gulung kayu manis Kerinci lembut berselimut saus karamel gula aren',
-        price: 38000,
-        image:
-          'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=700&q=85',
-      },
-      {
-        id: 'pt-3',
-        title: 'Italian Arancini Balls',
-        subtitle: 'Pastry gurih keju mozzarella leleh berbalut tepung roti garing',
-        price: 35000,
-        image:
-          'https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?auto=format&fit=crop&w=700&q=85',
-      },
-    ],
-  },
-]
-
-export function HomePageClient() {
+export function HomePageClient({ categoriesWithProducts = [] }: Props) {
   const [cartCount, setCartCount] = useState(0)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
 
@@ -395,72 +296,38 @@ export function HomePageClient() {
         </div>
       </section>
 
-      {/* 4. KATALOG PRODUK PER KATEGORI (1:1 Square Image, NO Card Border, Clean Title Only) */}
+      {/* 4. KATALOG PRODUK PER KATEGORI (Menggunakan data collection dari Payload) */}
       <section id="katalog" aria-label="Katalog Roti per Kategori" className="container mx-auto px-4 sm:px-8 lg:px-12 py-14 sm:py-20 space-y-14 sm:space-y-18">
-        {PRODUCT_CATEGORIES.map((category) => (
-          <div key={category.id} className="space-y-6 sm:space-y-8">
-            {/* Category Header (Title only, no description) */}
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-                {category.name}
-              </h3>
-              <Link
-                href="/shop"
-                className="inline-flex items-center gap-1 text-xs font-semibold text-[#bc6432] hover:text-[#964218] transition-colors"
-              >
-                Lihat Semua
-                <ArrowRight className="h-3 w-3" />
-              </Link>
-            </div>
-
-            {/* Product Cards: 1:1 Square Ratio, NO Border, Clean & Elegant */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10">
-              {category.products.map((product) => (
-                <div
-                  key={product.id}
-                  className="group flex flex-col justify-between transition-all duration-300"
+        {categoriesWithProducts.length > 0 ? (
+          categoriesWithProducts.map((category) => (
+            <div key={category.id} className="space-y-6 sm:space-y-8">
+              {/* Category Header */}
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                  {category.title}
+                </h3>
+                <Link
+                  href="/shop"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-[#bc6432] hover:text-[#964218] transition-colors"
                 >
-                  {/* 1:1 Square Image without border */}
-                  <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-[#faf7f2]">
-                    <Image
-                      src={product.image}
-                      alt={product.title}
-                      fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      className="object-cover group-hover:scale-104 transition-transform duration-500"
-                    />
-                  </div>
+                  Lihat Semua
+                  <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
 
-                  {/* Product Details: Hierarchy attuned to human eye */}
-                  <div className="pt-3.5 space-y-2.5 flex-1 flex flex-col justify-between">
-                    <div className="space-y-1">
-                      <h4 className="text-base font-semibold text-slate-900 group-hover:text-[#bc6432] transition-colors leading-snug">
-                        {product.title}
-                      </h4>
-                      <p className="text-xs text-slate-600 font-normal leading-relaxed line-clamp-2">
-                        {product.subtitle}
-                      </p>
-                    </div>
-
-                    {/* Harga & CTA Order (Brown/Terracotta Button) */}
-                    <div className="pt-1 flex items-center justify-between">
-                      <span className="text-sm sm:text-base font-medium text-slate-900">
-                        {formatRupiah(product.price)}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleAddToCart(product.title)}
-                        className="rounded-lg bg-[#bc6432] hover:bg-[#a35224] focus-visible:ring-2 focus-visible:ring-[#bc6432] focus-visible:outline-none px-4 py-2 text-xs font-semibold text-white shadow-xs transition-colors active:scale-95"
-                      >
-                        Pesan
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+              {/* Grid Produk menggunakan komponen <Grid> dan <ProductGridItem> */}
+              <Grid className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10">
+                {category.products.map((product) => (
+                  <ProductGridItem key={product.id} product={product} />
+                ))}
+              </Grid>
             </div>
+          ))
+        ) : (
+          <div className="text-center py-12 text-slate-500">
+            <p>Belum ada produk yang tersedia.</p>
           </div>
-        ))}
+        )}
       </section>
 
       {/* 5. CLEAN & EYE-CATCHING ARTISAN CTA (Blended with Card) */}
