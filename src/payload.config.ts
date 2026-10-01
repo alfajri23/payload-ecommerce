@@ -23,6 +23,7 @@ import { Footer } from '@/globals/Footer'
 import { GeneralSettings } from '@/globals/GeneralSettings'
 import { Header } from '@/globals/Header'
 import { plugins } from './plugins'
+import { s3Storage } from '@payloadcms/storage-s3'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -83,7 +84,28 @@ export default buildConfig({
   //email: nodemailerAdapter(),
   endpoints: [],
   globals: [Header, Footer, GeneralSettings],
-  plugins,
+  plugins: [
+    ...plugins,
+    ...(process.env.SUPABASE_S3_ENDPOINT
+      ? [
+          s3Storage({
+            collections: {
+              media: true, // slug collection media di Payload kamu
+            },
+            bucket: process.env.SUPABASE_STORAGE_BUCKET || 'payload-media',
+            config: {
+              credentials: {
+                accessKeyId: process.env.SUPABASE_S3_ACCESS_KEY_ID || '',
+                secretAccessKey: process.env.SUPABASE_S3_SECRET_ACCESS_KEY || '',
+              },
+              region: process.env.SUPABASE_S3_REGION || 'ap-southeast-1',
+              endpoint: process.env.SUPABASE_S3_ENDPOINT || '',
+              forcePathStyle: true, // Wajib true untuk Supabase
+            },
+          }),
+        ]
+      : []),
+  ],
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
