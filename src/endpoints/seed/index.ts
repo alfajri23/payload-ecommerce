@@ -8,6 +8,7 @@ import {
 } from './bakery-data'
 import { contactFormData } from './contact-form'
 import { contactPageData } from './contact-page'
+import { generalSettingsData } from './general-settings'
 import { homePageData } from './home'
 import type { Category, VariantOption } from '@/payload-types'
 
@@ -377,15 +378,7 @@ export const seed = async ({
     }),
     payload.updateGlobal({
       slug: 'general-settings',
-      data: {
-        storeName: 'The Bakery',
-        address: 'Jl. Senopati No. 42, Kebayoran Baru, Jakarta Selatan 12190',
-        phoneNumber: '+62 812-8899-7722',
-        secondaryPhone: '(021) 720-8899',
-        email: 'kontak@thebakery.id',
-        openingHours: 'Buka Setiap Hari: 07.00 - 21.00 WIB',
-        enableInventoryValidation: false,
-      },
+      data: generalSettingsData,
       req,
     }),
   ])
