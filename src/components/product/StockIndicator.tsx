@@ -6,11 +6,12 @@ import { useMemo } from 'react'
 
 type Props = {
   product: Product
+  enableInventoryValidation?: boolean | null
 }
 
-export const StockIndicator: React.FC<Props> = ({ product }) => {
+export const StockIndicator: React.FC<Props> = ({ product, enableInventoryValidation }) => {
   const searchParams = useSearchParams()
-  const checkInventory = isInventoryValidationEnabled()
+  const checkInventory = isInventoryValidationEnabled(enableInventoryValidation)
 
   const variants = product.variants?.docs || []
 

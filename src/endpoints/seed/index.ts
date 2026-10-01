@@ -27,7 +27,7 @@ const collections: CollectionSlug[] = [
   'orders',
 ]
 
-const globals: GlobalSlug[] = ['header', 'footer']
+const navGlobals: ('header' | 'footer')[] = ['header', 'footer']
 
 export const seed = async ({
   payload,
@@ -42,7 +42,7 @@ export const seed = async ({
 
   // 1. Reset globals
   await Promise.all(
-    globals.map((global) =>
+    navGlobals.map((global) =>
       payload.updateGlobal({
         slug: global,
         data: {
@@ -372,6 +372,19 @@ export const seed = async ({
             },
           },
         ],
+      },
+      req,
+    }),
+    payload.updateGlobal({
+      slug: 'general-settings',
+      data: {
+        storeName: 'The Bakery',
+        address: 'Jl. Senopati No. 42, Kebayoran Baru, Jakarta Selatan 12190',
+        phoneNumber: '+62 812-8899-7722',
+        secondaryPhone: '(021) 720-8899',
+        email: 'kontak@thebakery.id',
+        openingHours: 'Buka Setiap Hari: 07.00 - 21.00 WIB',
+        enableInventoryValidation: false,
       },
       req,
     }),

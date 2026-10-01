@@ -20,6 +20,7 @@ import { Pages } from '@/collections/Pages'
 import { PageViews } from '@/collections/PageViews'
 import { Users } from '@/collections/Users'
 import { Footer } from '@/globals/Footer'
+import { GeneralSettings } from '@/globals/GeneralSettings'
 import { Header } from '@/globals/Header'
 import { plugins } from './plugins'
 
@@ -81,7 +82,7 @@ export default buildConfig({
   }),
   //email: nodemailerAdapter(),
   endpoints: [],
-  globals: [Header, Footer],
+  globals: [Header, Footer, GeneralSettings],
   plugins,
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

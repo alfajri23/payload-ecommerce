@@ -1,64 +1,106 @@
-import type { Footer } from '@/payload-types'
-
+import type { Footer as FooterType, GeneralSetting } from '@/payload-types'
 import { FooterMenu } from '@/components/Footer/menu'
 import { ThemeSelector } from '@/providers/Theme/ThemeSelector'
 import { getCachedGlobal } from '@/utilities/getGlobals'
 import Link from 'next/link'
 import React, { Suspense } from 'react'
-import { LogoIcon } from '@/components/icons/logo'
-
-const { COMPANY_NAME, SITE_NAME } = process.env
+import { Wheat, MapPin, Phone } from 'lucide-react'
 
 export async function Footer() {
-  const footer: Footer = await getCachedGlobal('footer', 1)()
+  const [footer, generalSettings] = await Promise.all([
+    getCachedGlobal('footer', 1)() as Promise<FooterType>,
+    getCachedGlobal('general-settings', 1)().catch(() => null) as Promise<GeneralSetting | null>,
+  ])
+
   const menu = footer.navItems || []
   const currentYear = new Date().getFullYear()
-  const copyrightDate = 2023 + (currentYear > 2023 ? `-${currentYear}` : '')
-  const skeleton = 'w-full h-6 animate-pulse rounded bg-neutral-200 dark:bg-neutral-700'
+  const copyrightDate = 2024 + (currentYear > 2024 ? `-${currentYear}` : '')
 
-  const copyrightName = COMPANY_NAME || SITE_NAME || ''
+  const storeName = generalSettings?.storeName || 'The Bakery'
+  const address = generalSettings?.address || 'Jl. Kemang Raya No. 42, Jakarta Selatan'
+  const phoneNumber = generalSettings?.phoneNumber || '+62 812-3456-7890'
+  const mapsUrl = generalSettings?.mapsUrl
 
   return (
-    <footer className="text-sm text-neutral-500 dark:text-neutral-400">
-      <div className="container">
-        <div className="flex w-full flex-col gap-6 border-t border-neutral-200 py-12 text-sm md:flex-row md:gap-12 dark:border-neutral-700">
-          <div>
-            <Link className="flex items-center gap-2 text-black md:pt-1 dark:text-white" href="/">
-              <LogoIcon className="w-6" />
-              <span className="sr-only">{SITE_NAME}</span>
+    <footer className="w-full border-t border-slate-200 bg-stone-50/60 dark:bg-slate-950 dark:border-slate-800 text-sm text-slate-600 dark:text-slate-400 transition-colors">
+      <div className="container mx-auto px-4 sm:px-8 lg:px-12 py-12 sm:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12">
+          {/* Kolom 1: Brand & Filosofi Bakery */}
+          <div className="md:col-span-6 lg:col-span-5 space-y-4">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2.5 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-800 rounded-md"
+            >
+              <Wheat className="h-6 w-6 text-[#bc6432] group-hover:scale-105 transition-transform" />
+              <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white group-hover:text-[#bc6432] transition-colors">
+                {storeName}
+              </span>
             </Link>
-          </div>
-          <Suspense
-            fallback={
-              <div className="flex h-[188px] w-[200px] flex-col gap-2">
-                <div className={skeleton} />
-                <div className={skeleton} />
-                <div className={skeleton} />
-                <div className={skeleton} />
-                <div className={skeleton} />
-                <div className={skeleton} />
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-sm leading-relaxed">
+              Toko roti artisan dengan pilihan bahan terbaik, dipanggang segar setiap pagi dengan ragi alami dan dedikasi penuh.
+            </p>
+            <div className="space-y-2 pt-1 text-xs text-slate-600 dark:text-slate-400">
+              <div className="flex items-center gap-2.5">
+                <MapPin className="h-4 w-4 text-[#bc6432] shrink-0" />
+                {mapsUrl ? (
+                  <a
+                    href={mapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-[#bc6432] transition-colors"
+                  >
+                    {address}
+                  </a>
+                ) : (
+                  <span>{address}</span>
+                )}
               </div>
-            }
-          >
-            <FooterMenu menu={menu} />
-          </Suspense>
-          <div className="md:ml-auto flex flex-col gap-4 items-end">
-            <ThemeSelector />
+              <div className="flex items-center gap-2.5">
+                <Phone className="h-4 w-4 text-[#bc6432] shrink-0" />
+                <span>{phoneNumber}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Kolom 2: Navigasi Tautan */}
+          <div className="md:col-span-3 lg:col-span-4 space-y-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-900 dark:text-white">
+              Menu & Navigasi
+            </h3>
+            <Suspense
+              fallback={
+                <div className="flex flex-col gap-2">
+                  <div className="w-24 h-4 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                  <div className="w-20 h-4 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                  <div className="w-28 h-4 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                </div>
+              }
+            >
+              <FooterMenu menu={menu} />
+            </Suspense>
+          </div>
+
+          {/* Kolom 3: Pengaturan Tema Tampilan */}
+          <div className="md:col-span-3 lg:col-span-3 flex flex-col md:items-end justify-between gap-4">
+            <div className="space-y-2 w-full md:w-auto">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-900 dark:text-white block md:text-right">
+                Tema Tampilan
+              </span>
+              <div className="flex md:justify-end">
+                <ThemeSelector />
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-      <div className="border-t border-neutral-200 py-6 text-sm dark:border-neutral-700">
-        <div className="container mx-auto flex w-full flex-col items-center gap-1 md:flex-row md:gap-0">
+
+        {/* Baris Bawah: Hak Cipta */}
+        <div className="mt-12 pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
           <p>
-            &copy; {copyrightDate} {copyrightName}
-            {copyrightName.length && !copyrightName.endsWith('.') ? '.' : ''} All rights reserved.
+            &copy; {copyrightDate} The Bakery. Seluruh hak cipta dilindungi.
           </p>
-          <hr className="mx-4 hidden h-4 w-px border-l border-neutral-400 md:inline-block" />
-          <p>Designed in Michigan</p>
-          <p className="md:ml-auto">
-            <a className="text-black dark:text-white" href="https://payloadcms.com">
-              Crafted by Payload
-            </a>
+          <p className="flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#bc6432]" />
+            <span>Artisan Bakery & Pastry</span>
           </p>
         </div>
       </div>

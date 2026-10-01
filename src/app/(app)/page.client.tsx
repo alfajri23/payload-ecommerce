@@ -20,7 +20,7 @@ import { useState } from 'react'
 
 import { Grid } from '@/components/Grid'
 import { ProductGridItem } from '@/components/ProductGridItem'
-import type { Product } from '@/payload-types'
+import type { GeneralSetting, Product } from '@/payload-types'
 
 // Format Rupiah
 const formatRupiah = (amount: number): string => {
@@ -37,9 +37,19 @@ type Props = {
     title: string
     products: Product[]
   }[]
+  generalSettings?: GeneralSetting
 }
 
-export function HomePageClient({ categoriesWithProducts = [] }: Props) {
+export function HomePageClient({
+  categoriesWithProducts = [],
+  generalSettings,
+}: Props) {
+  const address =
+    generalSettings?.address || 'Jl. Senopati No. 42, Kebayoran Baru, Jakarta Selatan 12190'
+  const phoneNumber = generalSettings?.phoneNumber || '+62 812-8899-7722'
+  const secondaryPhone = generalSettings?.secondaryPhone || '(021) 720-8899'
+  const openingHours = generalSettings?.openingHours || 'Buka Setiap Hari: 07.00 - 21.00 WIB'
+  const mapsUrl = generalSettings?.mapsUrl
   const [cartCount, setCartCount] = useState(0)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
 
@@ -146,9 +156,18 @@ export function HomePageClient({ categoriesWithProducts = [] }: Props) {
                   <MapPin className="h-4 w-4 text-[#bc6432] shrink-0 mt-0.5" />
                   <div>
                     <strong className="block text-slate-900 font-semibold">Alamat Toko:</strong>
-                    <span className="text-slate-500 leading-normal">
-                      Jl. Senopati No. 42, Kebayoran Baru, Jakarta Selatan 12190
-                    </span>
+                    {mapsUrl ? (
+                      <a
+                        href={mapsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-slate-500 hover:text-[#bc6432] leading-normal transition-colors"
+                      >
+                        {address}
+                      </a>
+                    ) : (
+                      <span className="text-slate-500 leading-normal">{address}</span>
+                    )}
                   </div>
                 </div>
 
@@ -156,14 +175,16 @@ export function HomePageClient({ categoriesWithProducts = [] }: Props) {
                   <Phone className="h-4 w-4 text-[#bc6432] shrink-0 mt-0.5" />
                   <div>
                     <strong className="block text-slate-900 font-semibold">Telepon & WhatsApp:</strong>
-                    <span className="text-[#bc6432] font-semibold">+62 812-8899-7722</span>
-                    <span className="block text-slate-400 text-2xs">(021) 720-8899</span>
+                    <span className="text-[#bc6432] font-semibold">{phoneNumber}</span>
+                    {secondaryPhone && (
+                      <span className="block text-slate-400 text-2xs">{secondaryPhone}</span>
+                    )}
                   </div>
                 </div>
 
                 <div className="flex items-start gap-2.5 text-2xs text-slate-400">
                   <Clock className="h-3.5 w-3.5 text-[#bc6432] shrink-0 mt-0.5" />
-                  <span>Buka Setiap Hari: 07.00 - 21.00 WIB</span>
+                  <span>{openingHours}</span>
                 </div>
               </div>
             </div>

@@ -12,14 +12,15 @@ import React, { useCallback, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 type Props = {
   product: Product
+  enableInventoryValidation?: boolean | null
 }
 
-export function AddToCart({ product }: Props) {
+export function AddToCart({ product, enableInventoryValidation }: Props) {
   const { addItem, cart, isLoading } = useCart()
   const router = useRouter()
   const searchParams = useSearchParams()
   const [isBuyingNow, setIsBuyingNow] = useState(false)
-  const checkInventory = isInventoryValidationEnabled()
+  const checkInventory = isInventoryValidationEnabled(enableInventoryValidation)
 
   const variants = product.variants?.docs || []
 

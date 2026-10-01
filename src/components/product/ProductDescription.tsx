@@ -10,7 +10,13 @@ import { StockIndicator } from '@/components/product/StockIndicator'
 import { useCurrency } from '@payloadcms/plugin-ecommerce/client/react'
 import { VariantSelector } from './VariantSelector'
 
-export function ProductDescription({ product }: { product: Product }) {
+export function ProductDescription({
+  product,
+  enableInventoryValidation,
+}: {
+  product: Product
+  enableInventoryValidation?: boolean | null
+}) {
   const { currency } = useCurrency()
   const searchParams = useSearchParams()
 
@@ -151,21 +157,30 @@ export function ProductDescription({ product }: { product: Product }) {
       {/* Variants Selection */}
       {hasVariants && (
         <Suspense fallback={null}>
-          <VariantSelector product={product} />
+          <VariantSelector
+            product={product}
+            enableInventoryValidation={enableInventoryValidation}
+          />
         </Suspense>
       )}
 
       {/* Stock Status */}
       <div>
         <Suspense fallback={null}>
-          <StockIndicator product={product} />
+          <StockIndicator
+            product={product}
+            enableInventoryValidation={enableInventoryValidation}
+          />
         </Suspense>
       </div>
 
       {/* Action Buttons */}
       <div className="pt-2">
         <Suspense fallback={null}>
-          <AddToCart product={product} />
+          <AddToCart
+            product={product}
+            enableInventoryValidation={enableInventoryValidation}
+          />
         </Suspense>
       </div>
     </div>

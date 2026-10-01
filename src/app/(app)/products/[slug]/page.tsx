@@ -1,9 +1,10 @@
-import type { Media, Product } from '@/payload-types'
+import type { Media, Product, GeneralSetting } from '@/payload-types'
 
 import { RenderBlocks } from '@/blocks/RenderBlocks'
 import { ProductGridItem } from '@/components/ProductGridItem'
 import { Gallery } from '@/components/product/Gallery'
 import { ProductDescription } from '@/components/product/ProductDescription'
+import { getCachedGlobal } from '@/utilities/getGlobals'
 import configPromise from '@payload-config'
 import { ChevronLeftIcon } from 'lucide-react'
 import { Metadata } from 'next'
@@ -60,7 +61,10 @@ export async function generateMetadata({ params }: Args): Promise<Metadata> {
 
 export default async function ProductPage({ params }: Args) {
   const { slug } = await params
-  const product = await queryProductBySlug({ slug })
+  const [product, generalSettings] = await Promise.all([
+    queryProductBySlug({ slug }),
+    getCachedGlobal('general-settings', 1)().catch(() => null) as Promise<GeneralSetting | null>,
+  ])
 
   if (!product) return notFound()
 
@@ -144,7 +148,10 @@ export default async function ProductPage({ params }: Args) {
           {/* Product Info & Buying Actions Column */}
           <div className="lg:col-span-6 xl:col-span-5">
             <Suspense fallback={null}>
-              <ProductDescription product={product} />
+              <ProductDescription
+                product={product}
+                enableInventoryValidation={generalSettings?.enableInventoryValidation}
+              />
             </Suspense>
           </div>
         </div>

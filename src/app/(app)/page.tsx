@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
+import { getCachedGlobal } from '@/utilities/getGlobals'
+import type { GeneralSetting } from '@/payload-types'
 import { HomePageClient } from './page.client'
 
 export const metadata: Metadata = {
@@ -16,6 +18,7 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   const payload = await getPayload({ config: configPromise })
+  const generalSettings: GeneralSetting = await getCachedGlobal('general-settings', 1)()
 
   // 1. Ambil daftar kategori
   const { docs: categories } = await payload.find({
@@ -56,5 +59,10 @@ export default async function HomePage() {
     })
   }
 
-  return <HomePageClient categoriesWithProducts={categoriesWithProducts} />
+  return (
+    <HomePageClient
+      categoriesWithProducts={categoriesWithProducts}
+      generalSettings={generalSettings}
+    />
+  )
 }

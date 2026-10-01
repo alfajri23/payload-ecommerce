@@ -133,10 +133,12 @@ export interface Config {
   globals: {
     header: Header;
     footer: Footer;
+    'general-settings': GeneralSetting;
   };
   globalsSelect: {
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
+    'general-settings': GeneralSettingsSelect<false> | GeneralSettingsSelect<true>;
   };
   locale: null;
   widgets: {
@@ -1872,6 +1874,36 @@ export interface Footer {
   createdAt?: string | null;
 }
 /**
+ * Pengaturan umum toko (alamat, nomor kontak, jam operasional, dan validasi stok e-commerce).
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "general-settings".
+ */
+export interface GeneralSetting {
+  id: number;
+  storeName: string;
+  /**
+   * Alamat fisik toko yang ditampilkan di homepage dan footer.
+   */
+  address: string;
+  /**
+   * Tautan Google Maps lokasi toko (opsional).
+   */
+  mapsUrl?: string | null;
+  phoneNumber: string;
+  secondaryPhone?: string | null;
+  email?: string | null;
+  openingHours?: string | null;
+  instagramUrl?: string | null;
+  tiktokUrl?: string | null;
+  /**
+   * Jika diaktifkan (centang), sistem akan membatasi pembelian sesuai stok aktual di database. Jika dinonaktifkan, pembeli bebas memesan tanpa batas kuota stok.
+   */
+  enableInventoryValidation?: boolean | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "header_select".
  */
@@ -1928,6 +1960,25 @@ export interface FooterSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "general-settings_select".
+ */
+export interface GeneralSettingsSelect<T extends boolean = true> {
+  storeName?: T;
+  address?: T;
+  mapsUrl?: T;
+  phoneNumber?: T;
+  secondaryPhone?: T;
+  email?: T;
+  openingHours?: T;
+  instagramUrl?: T;
+  tiktokUrl?: T;
+  enableInventoryValidation?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

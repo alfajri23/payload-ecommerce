@@ -11,12 +11,16 @@ export function FooterMenu({ menu }: Props) {
   if (!menu?.length) return null
 
   return (
-    <nav>
-      <ul>
+    <nav aria-label="Footer Navigation">
+      <ul className="flex flex-col space-y-2.5">
         {menu.map((item) => {
           return (
             <li key={item.id}>
-              <CMSLink appearance="link" {...item.link} />
+              <CMSLink
+                appearance="inline"
+                className="text-xs sm:text-sm font-medium text-slate-600 hover:text-[#bc6432] dark:text-slate-400 dark:hover:text-amber-400 transition-colors inline-block py-0.5"
+                {...item.link}
+              />
             </li>
           )
         })}

@@ -8,11 +8,17 @@ import clsx from 'clsx'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import React from 'react'
 
-export function VariantSelector({ product }: { product: Product }) {
+export function VariantSelector({
+  product,
+  enableInventoryValidation,
+}: {
+  product: Product
+  enableInventoryValidation?: boolean | null
+}) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const checkInventory = isInventoryValidationEnabled()
+  const checkInventory = isInventoryValidationEnabled(enableInventoryValidation)
   const variants = product.variants?.docs
   const variantTypes = product.variantTypes
   const hasVariants = Boolean(product.enableVariants && variants?.length && variantTypes?.length)
