@@ -5,6 +5,7 @@ import { GenerateTitle, GenerateURL } from '@payloadcms/plugin-seo/types'
 import { FixedToolbarFeature, HeadingFeature, lexicalEditor } from '@payloadcms/richtext-lexical'
 import { Plugin } from 'payload'
 
+import { checkRole } from '@/access/utilities'
 import { adminOnlyFieldAccess } from '@/access/adminOnlyFieldAccess'
 import { adminOrPublishedStatus } from '@/access/adminOrPublishedStatus'
 import { customerOnlyFieldAccess } from '@/access/customerOnlyFieldAccess'
@@ -90,6 +91,15 @@ export const plugins: Plugin[] = [
     orders: {
       ordersCollectionOverride: ({ defaultCollection }) => ({
         ...defaultCollection,
+        access: {
+          ...defaultCollection?.access,
+          read: ({ req }) => {
+            if (req.user && checkRole(['admin', 'viewer'], req.user)) {
+              return true
+            }
+            return isDocumentOwner({ req })
+          },
+        },
         admin: {
           ...defaultCollection.admin,
           defaultColumns: [

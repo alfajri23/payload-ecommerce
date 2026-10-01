@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { adminOnly } from '@/access/adminOnly'
+import { checkRole } from '@/access/utilities'
 
 export const PageViews: CollectionConfig = {
   slug: 'page-views',
@@ -15,7 +16,7 @@ export const PageViews: CollectionConfig = {
   },
   access: {
     create: () => true,
-    read: adminOnly,
+    read: ({ req: { user } }) => checkRole(['admin', 'viewer'], user),
     update: () => false,
     delete: adminOnly,
   },
