@@ -1,0 +1,299 @@
+.traffic-chart-section {
+  background: var(--theme-elevation-50);
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  &__heading {
+    flex: 1 1 280px;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--theme-text);
+  }
+
+  &__subtitle {
+    margin: 0.25rem 0 0;
+    font-size: 0.8125rem;
+    opacity: 0.7;
+    line-height: 1.4;
+  }
+
+  &__controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+  }
+
+  &__filters {
+    display: inline-flex;
+    background: var(--theme-elevation-100);
+    border: 1px solid var(--theme-elevation-200);
+    border-radius: 6px;
+    padding: 2px;
+    gap: 2px;
+  }
+
+  &__filter-btn {
+    border: none;
+    background: transparent;
+    color: inherit;
+    font-size: 0.775rem;
+    font-weight: 500;
+    padding: 0.35rem 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, font-weight 0.15s ease;
+    opacity: 0.75;
+
+    &:hover {
+      opacity: 1;
+      background: var(--theme-elevation-150);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--theme-elevation-400);
+      outline-offset: 1px;
+    }
+
+    &--active {
+      background: var(--theme-elevation-0, #fff);
+      color: var(--theme-text);
+      font-weight: 600;
+      opacity: 1;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+  }
+
+  &__link-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.85rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: 6px;
+    background: var(--theme-elevation-100);
+    border: 1px solid var(--theme-elevation-200);
+    color: inherit;
+    transition: background 0.15s ease, border-color 0.15s ease;
+
+    &:hover {
+      background: var(--theme-elevation-150);
+      border-color: var(--theme-elevation-300);
+      opacity: 1;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--theme-elevation-400);
+      outline-offset: 1px;
+    }
+  }
+
+  &__metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--theme-elevation-100);
+  }
+
+  &__metric-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  &__metric-label {
+    font-size: 0.725rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    opacity: 0.65;
+  }
+
+  &__metric-value {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--theme-text);
+  }
+
+  &__canvas-wrapper {
+    position: relative;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-top: 0.5rem;
+  }
+
+  &__svg {
+    width: 100%;
+    min-width: 480px;
+    height: 220px;
+    display: block;
+    overflow: visible;
+  }
+
+  &__grid-line {
+    stroke: var(--theme-elevation-150);
+    stroke-dasharray: 4 4;
+    stroke-width: 1;
+  }
+
+  &__axis-label {
+    font-size: 11px;
+    font-weight: 500;
+    fill: var(--theme-elevation-500, #71717a);
+    font-family: inherit;
+  }
+
+  &__x-label {
+    font-size: 11px;
+    font-weight: 500;
+    fill: var(--theme-elevation-600, #71717a);
+    font-family: inherit;
+  }
+
+  &__hit-area {
+    cursor: pointer;
+  }
+
+  &__bar-backdrop {
+    fill: var(--theme-elevation-100);
+    rx: 4px;
+    ry: 4px;
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  &__bar {
+    fill: var(--theme-elevation-800, #2563eb);
+    transition: fill 0.15s ease, height 0.2s ease, y 0.2s ease;
+    cursor: pointer;
+
+    &--empty {
+      fill: var(--theme-elevation-200);
+      opacity: 0.7;
+    }
+  }
+
+  &__bar-group {
+    outline: none;
+
+    &:hover &__bar:not(&__bar--empty),
+    &:focus-visible &__bar:not(&__bar--empty) {
+      fill: var(--theme-elevation-950, #1d4ed8);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--theme-elevation-400);
+      outline-offset: -2px;
+    }
+  }
+
+  &__tooltip {
+    position: absolute;
+    top: 0;
+    transform: translate(-50%, -105%);
+    background: var(--theme-elevation-900, #18181b);
+    color: var(--theme-elevation-0, #ffffff);
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.775rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 10;
+    border: 1px solid var(--theme-elevation-700, #27272a);
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  &__tooltip-date {
+    font-size: 0.7rem;
+    opacity: 0.75;
+    font-weight: 500;
+  }
+
+  &__tooltip-total {
+    font-size: 0.85rem;
+  }
+
+  &__tooltip-breakdown {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.7rem;
+    opacity: 0.8;
+    margin-top: 0.1rem;
+    padding-top: 0.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  &__empty-note {
+    margin: 1rem 0 0;
+    font-size: 0.825rem;
+    opacity: 0.7;
+    text-align: center;
+    padding: 0.75rem 0;
+
+    code {
+      background: var(--theme-elevation-150);
+      padding: 0.15rem 0.35rem;
+      border-radius: 4px;
+      font-size: 0.8em;
+    }
+  }
+}
+
+// Dark mode refinements
+[data-theme='dark'] .traffic-chart-section {
+  &__filter-btn--active {
+    background: var(--theme-elevation-200);
+    color: var(--theme-text);
+  }
+
+  &__bar {
+    fill: var(--theme-elevation-600, #60a5fa);
+
+    &--empty {
+      fill: var(--theme-elevation-200);
+    }
+  }
+
+  &__bar-group {
+    &:hover &__bar:not(&__bar--empty),
+    &:focus-visible &__bar:not(&__bar--empty) {
+      fill: var(--theme-elevation-400, #93c5fd);
+    }
+  }
+
+  &__tooltip {
+    background: var(--theme-elevation-100);
+    color: var(--theme-text);
+    border-color: var(--theme-elevation-250, #3f3f46);
+  }
+
+  &__tooltip-breakdown {
+    border-top-color: var(--theme-elevation-200);
+  }
+}

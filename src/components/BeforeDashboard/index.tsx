@@ -2,12 +2,17 @@ import React from 'react'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { SeedButton } from './SeedButton'
+import { TrafficChart } from './TrafficChart'
 import './index.scss'
 
 export const BeforeDashboard: React.FC = async () => {
   const payload = await getPayload({ config })
 
-  const [visitsCount, promoCount, recentViewsDoc, ordersCount, productsCount] =
+  const thirtyDaysAgo = new Date()
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29)
+  thirtyDaysAgo.setHours(0, 0, 0, 0)
+
+  const [visitsCount, promoCount, monthlyViewsDoc, ordersCount, productsCount] =
     await Promise.all([
       payload.count({ collection: 'page-views' }).catch(() => ({ totalDocs: 0 })),
       payload
@@ -23,8 +28,14 @@ export const BeforeDashboard: React.FC = async () => {
       payload
         .find({
           collection: 'page-views',
-          limit: 5,
-          sort: '-createdAt',
+          where: {
+            createdAt: {
+              greater_than_equal: thirtyDaysAgo.toISOString(),
+            },
+          },
+          limit: 1000,
+          pagination: false,
+          sort: 'createdAt',
         })
         .catch(() => ({ docs: [] })),
       payload.count({ collection: 'orders' }).catch(() => ({ totalDocs: 0 })),
@@ -33,9 +44,15 @@ export const BeforeDashboard: React.FC = async () => {
 
   const totalVisits = visitsCount.totalDocs
   const promoVisits = promoCount.totalDocs
-  const recentViews = recentViewsDoc.docs
   const totalOrders = ordersCount.totalDocs
   const totalProducts = productsCount.totalDocs
+
+  const trafficData = (monthlyViewsDoc.docs || []).map((doc) => ({
+    createdAt:
+      typeof doc.createdAt === 'string' ? doc.createdAt : new Date(doc.createdAt).toISOString(),
+    device: doc.device || null,
+    referrer: doc.referrer || null,
+  }))
 
   return (
     <div className="custom-admin-dashboard">
@@ -98,76 +115,8 @@ export const BeforeDashboard: React.FC = async () => {
         </div>
       </div>
 
-      {/* Tabel Kunjungan Terakhir */}
-      <div className="custom-admin-dashboard__recent-section">
-        <div className="custom-admin-dashboard__recent-title">
-          <span>Kunjungan Terakhir (Live Traffic)</span>
-          <a
-            href="/admin/collections/page-views"
-            className="custom-admin-dashboard__link-button"
-          >
-            Lihat Semua Kunjungan →
-          </a>
-        </div>
-
-        {recentViews.length === 0 ? (
-          <p className="custom-admin-dashboard__empty-text">
-            Belum ada kunjungan tercatat. Coba buka website dengan parameter:{' '}
-            <code>?ref=ig_test</code>
-          </p>
-        ) : (
-          <div className="custom-admin-dashboard__table-wrapper">
-            <table className="custom-admin-dashboard__table">
-              <thead>
-                <tr>
-                  <th>Landing Path</th>
-                  <th>Sumber / Ref</th>
-                  <th>Perangkat</th>
-                  <th>Waktu</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentViews.map((item, idx) => {
-                  const date = item.createdAt
-                    ? new Date(item.createdAt).toLocaleString('id-ID', {
-                        day: 'numeric',
-                        month: 'short',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })
-                    : '-'
-                  const isDirect = !item.referrer || item.referrer === 'Direct'
-
-                  return (
-                    <tr key={item.id || idx}>
-                      <td>
-                        <strong>{item.path}</strong>
-                      </td>
-                      <td>
-                        <span
-                          className={`custom-admin-dashboard__badge ${
-                            isDirect
-                              ? 'custom-admin-dashboard__badge--direct'
-                              : 'custom-admin-dashboard__badge--ref'
-                          }`}
-                        >
-                          {item.referrer || 'Direct'}
-                        </span>
-                      </td>
-                      <td>
-                        <span className="custom-admin-dashboard__badge custom-admin-dashboard__badge--device">
-                          {item.device || 'desktop'}
-                        </span>
-                      </td>
-                      <td>{date}</td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      {/* Grafik Tren Trafik */}
+      <TrafficChart initialData={trafficData} />
     </div>
   )
 }
