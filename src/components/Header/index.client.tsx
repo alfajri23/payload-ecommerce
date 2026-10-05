@@ -47,6 +47,11 @@ export function HeaderClient({ header }: Props) {
     setUserMenuOpen(false)
   }, [pathname])
 
+  // Jangan render navbar Bakery di halaman showcase /salon
+  if (pathname?.startsWith('/salon')) {
+    return null
+  }
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-slate-100 bg-white/95 backdrop-blur-xs transition-colors">
       <div className="container mx-auto px-4 sm:px-8 lg:px-12">

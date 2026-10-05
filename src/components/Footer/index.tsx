@@ -6,6 +6,8 @@ import Link from 'next/link'
 import React, { Suspense } from 'react'
 import { Wheat, MapPin, Phone } from 'lucide-react'
 
+import { FooterWrapper } from './wrapper'
+
 export async function Footer() {
   const [footer, generalSettings] = await Promise.all([
     getCachedGlobal('footer', 1)() as Promise<FooterType>,
@@ -22,7 +24,8 @@ export async function Footer() {
   const mapsUrl = generalSettings?.mapsUrl
 
   return (
-    <footer className="w-full border-t border-slate-200 bg-stone-50/60 dark:bg-slate-950 dark:border-slate-800 text-sm text-slate-600 dark:text-slate-400 transition-colors">
+    <FooterWrapper>
+      <footer className="w-full border-t border-slate-200 bg-stone-50/60 dark:bg-slate-950 dark:border-slate-800 text-sm text-slate-600 dark:text-slate-400 transition-colors">
       <div className="container mx-auto px-4 sm:px-8 lg:px-12 py-12 sm:py-16">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12">
           {/* Kolom 1: Brand & Filosofi Bakery */}
@@ -105,5 +108,7 @@ export async function Footer() {
         </div>
       </div>
     </footer>
+    </FooterWrapper>
   )
 }
+
