@@ -47,8 +47,8 @@ export function HeaderClient({ header }: Props) {
     setUserMenuOpen(false)
   }, [pathname])
 
-  // Jangan render navbar Bakery di halaman showcase /salon
-  if (pathname?.startsWith('/salon')) {
+  // Jangan render navbar Bakery di halaman showcase /salon atau /fashion
+  if (pathname?.startsWith('/salon') || pathname?.startsWith('/fashion')) {
     return null
   }
 
